@@ -1075,6 +1075,7 @@ const defraSewage: TrendSeries = {
   goodDirection: "down",
   source: "Environment Agency storm overflow EDM annual returns",
   sourceUrl: "https://www.gov.uk/government/statistics/storm-overflow-spill-data",
+  coverage: "England",
   cadence: "annual",
   points: realPoints("defra-sewage-hours"),
   annotations: [],

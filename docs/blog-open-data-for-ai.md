@@ -69,6 +69,11 @@ question a release can answer:
 > identify the unit, geography, licence, provenance, freshness and suppression
 > status, reject a plausible wrong value, and cite the source?
 
+The fifteen-line script is not a figure of speech. It exists, it is committed at
+[docs/conformance/probe-15-lines.mjs](https://github.com/Egly443/Govviz/blob/main/docs/conformance/probe-15-lines.mjs),
+and it is printed in full in the appendix, together with its output against the
+hardest case in the conformance suite.
+
 If yes, the area has moved forward. If no, the failure is specific enough to
 fix.
 
@@ -165,7 +170,7 @@ For a statistical series, the minimum useful shape is small:
   "validRange": { "min": 500000, "max": 6000000 },
   "suppressionScheme": "https://example.gov.uk/def/sdc/v1",
   "revisionStatus": "final",
-  "licence": "OGL-v3",
+  "licence": "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
   "provenance": {
     "source": "EA EDM annual returns",
     "derivation": "sum of per-asset Total Duration (hours)"
@@ -186,6 +191,15 @@ separates the primary `producer` from the downstream `compiler`, marks
 freshness metadata without inventing official release dates, and publishes
 limitations so the claim is not overstated.
 
+The licence field deserves the same honesty. Not everything in a catalogue like
+this is Crown copyright: World Bank series are CC-BY 4.0, and data published by
+arm's-length bodies is not Open Government Licence by default just because the
+body is public. So `licence` is carried per series as the *upstream* licence, a
+compiler must audit its right to redistribute each source rather than stamping
+one licence across the estate, and each Govviz record states in its limitations
+that the licence given is the compiler's per-source determination, not a
+producer assertion.
+
 The important part is not Govviz's exact schema. It is the design discipline:
 stable identity, tidy observations, in-band semantics, provenance, licence,
 suppression, freshness, access policy, validation range, and a formal contract
@@ -201,6 +215,44 @@ profile on top: package those obligations at the level of one named public
 series, add an explicit semantic-safety guardrail, and test the result with a
 probe that reflects a real user task. The conformance tests are as important as
 the fields.
+
+### Where each field comes from
+
+"Not a new standard" should be checkable, not asserted. Almost every field in
+the record above already has a home in a vocabulary government has adopted;
+field by field:
+
+| Field | Existing home | Genuinely new? |
+|---|---|---|
+| `id` | DCAT dataset with `dct:identifier`; persistent-URI policy | No |
+| `title`, `description` | `dct:title`, `dct:description` (the description must disambiguate the measure) | No |
+| `producer` | `dct:publisher` | No |
+| `statisticType` | The OSR Code of Practice badge, carried as a declared value; there is no established machine vocabulary for it | Partly |
+| `unit` | SDMX `UNIT_MEASURE`, repeated on every row of the data file and typed in CSVW | No |
+| `geography` | SDMX `REF_AREA` using ONS geography codes; `dct:spatial` | No |
+| `periodicity` | `dct:accrualPeriodicity`; SDMX `FREQ` | No |
+| `validRange` | None. The nearest analogues are SHACL or JSON Schema constraints, but no publishing vocabulary carries a plausibility guard | **Yes** |
+| `suppressionScheme` | A pointer to a declared code list; the codes themselves ride SDMX `OBS_STATUS` in the data file | Partly |
+| `revisionStatus` | SDMX `OBS_STATUS` (provisional / revised / final) | No |
+| `licence` | `dct:license`, carried per series as the upstream licence | No |
+| `provenance` | PROV-O and `dct:source` | No |
+| `latest` | A DCAT distribution with a stable download URL, kept alongside versioned assets | No |
+
+Two fields are deliberate inventions, and only two. `validRange` is the
+semantic-safety guardrail: a published plausibility band that lets a consumer
+reject a wrong-tab, wrong-unit or wrong-row read before it becomes a quoted
+number. `upstreamConformance` (in the full profile) is the honesty flag: it
+records whether the primary producer has asserted this shape, so a downstream
+rendering can never silently impersonate an upstream commitment. Everything
+else is composition, not coinage — the full field-by-field crosswalk, covering
+all fifty-odd fields including the governance and freshness set, is in the
+[AI-ready series profile](https://github.com/Egly443/Govviz/blob/main/docs/conformance/ai-ready-series-profile.md).
+
+The profile is also designed to sit inside the machinery that already exists,
+not beside it: records of this shape can be harvested into data.gov.uk's
+DCAT-based catalogue unchanged, and the SDMX concepts used here are the same
+ones ONS is adopting for its own statistical outputs. Adoption should feel like
+filling in a profile, not migrating to one.
 
 ## Trust and machine-readability are different axes
 
@@ -259,8 +311,9 @@ Used well, the suite can help several groups at once:
   publish the target shape and the parser disappears.
 - For the National Data Library, it gives awkward-tail onboarding cases for
   priority public series, rather than only tractable sources.
-- For GDS and the Data Standards Authority, it gives executable examples for a
-  thin AI-ready series profile.
+- For GDS — which, as the digital centre of government within DSIT, now holds
+  the former CDDO and Data Standards Authority functions — it gives executable
+  examples for a thin AI-ready series profile.
 - For ODI, it gives cases that can be mapped against the enterprise framework:
   metadata, infrastructure, governance, monitoring and feedback.
 - For OSR and UKSA, it gives an auditable way to discuss machine-readability as
@@ -365,12 +418,17 @@ The ownership model should be explicit.
 
 | Function | Practical role |
 |---|---|
-| GDS / Data Standards Authority | Convene the thin publishing profile, maintain cross-government examples, and make conformance test results reusable across services. |
+| GDS (digital centre of government, within DSIT) | Convene the thin publishing profile, maintain cross-government examples, and make conformance test results reusable across services. |
 | DSIT / National Data Library team | Use priority accountability-tail cases as onboarding and acceptance tests for discovery, resolution and harmonisation services. |
 | ONS / UKSA / OSR | Align the trust side with the Code of Practice, statistical quality expectations, release practice and public value discussions. |
 | Departmental chief data officers and heads of profession | Nominate priority series, assign owners, and make the machine artefacts part of the publication workflow. |
 | Data.gov.uk / catalogue operators | Provide stable discovery, persistent identifiers, catalogue metadata and links to current and versioned assets. |
 | ODI and civic-data partners | Provide independent challenge, user research, reuse evidence and feedback-loop patterns. |
+
+Organisational names are as of mid-2026: the January 2025 machinery-of-government
+change merged CDDO, the Incubator for AI and the Geospatial Commission into GDS
+under DSIT, and the former Data Standards Authority's functions now sit within
+GDS.
 
 The first realistic programme would be small: select perhaps twenty priority
 series across five to seven producers; publish stable identifiers, metadata,
@@ -415,6 +473,14 @@ There are several ways to do this badly.
 **Overclaiming.** A downstream compiler must not imply that a primary producer
 has certified a shape it has not published. Govviz separates compiler metadata
 from producer metadata for this reason.
+
+**Licence overreach.** Defaulting a whole catalogue to the Open Government
+Licence is a quiet form of overclaiming. Public aggregate statistics are not
+uniformly Crown copyright: international sources carry their own terms, and
+arm's-length bodies' publications need checking rather than assuming. The
+licence field must be the audited upstream licence of each individual series,
+and a downstream compiler should say when a licence is its own determination
+rather than the producer's assertion.
 
 **Disclosure mistakes.** Statistical disclosure control is not formatting
 noise. Suppression markers must be machine-readable, but the underlying
@@ -494,6 +560,65 @@ stays authoritative.
 
 ---
 
+## Appendix: the fifteen-line probe
+
+The test this essay keeps invoking is a real script, committed at
+[docs/conformance/probe-15-lines.mjs](https://github.com/Egly443/Govviz/blob/main/docs/conformance/probe-15-lines.mjs).
+Comments aside, it is exactly fifteen lines of standard Node, with no
+dependencies:
+
+```js
+const base = process.env.GOVVIZ_DATA_BASE ?? "https://egly443.github.io/Govviz/data";
+const id = process.argv[2] ?? "defra-sewage-hours";
+const rec = await (await fetch(`${base}/series/${id}.json`)).json();
+const rows = (await (await fetch(rec.latest)).text()).trim().split("\n");
+const cols = rows[0].split(",");
+const obs = Object.fromEntries(rows.at(-1).split(",").map((v, i) => [cols[i], v]));
+const value = Number(obs.value);
+const { min, max } = rec.validRange ?? { min: -Infinity, max: Infinity };
+if (!(value >= min && value <= max))
+  throw new Error(`rejected: "${obs.value}" is not a plausible value for ${id}`);
+console.log(`${rec.title} — ${rec.producer} (${rec.statisticType}, ${rec.revisionStatus})`);
+console.log(`${obs.period}: ${value} ${obs.unit} [status: ${obs.status}]`);
+console.log(`geography: ${rec.geographyLabel ?? rec.geography ?? "not declared"}; licence: ${rec.licence}`);
+console.log(`provenance: ${rec.provenance.source} — ${rec.provenance.upstreamUrl}`);
+console.log(`cite: ${rec.id} (fetched ${rec.latestFetchedAt}, freshness: ${rec.freshnessStatus})`);
+```
+
+Run against the hardest case in the conformance suite — storm-overflow spill
+hours, whose upstream is an annual zip of per-company workbooks on a
+rate-limiting host — it prints (captured from a reference build pinned to the
+2024 annual return, whose national total of 3,614,428 hours is the Environment
+Agency's published figure):
+
+```
+Sewage spill hours — Environment Agency storm overflow EDM annual returns (Official Statistic, final)
+2024: 3614428 hours [status: final]
+geography: England; licence: https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/
+provenance: Environment Agency storm overflow EDM annual returns — https://www.data.gov.uk/dataset/19f6064d-7356-466f-844e-d20ea10ae9fd/event-duration-monitoring-storm-overflows-annual-returns
+cite: https://egly443.github.io/Govviz/data/series/defra-sewage-hours.json (fetched 2026-07-03, freshness: aged)
+```
+
+Every line of output is a profile obligation being met, and even the caveat in
+that capture is doing its job: pinned to the 2024 edition, the record honestly
+reports `freshness: aged` rather than presenting a stale year as current. The
+guard earns its three lines too. In testing, appending a wrong-but-plausible row
+whose value was a leaked year — `2026` — made the probe throw rather than
+print, which is precisely the failure class that produced a fake £2,026
+council-tax average during the fieldwork behind this essay.
+
+The contrast is the argument. Pointed at the raw upstream release instead, the
+same task fails on the third line: there is no series identifier to resolve.
+After that it needs a CKAN API call, a zip download, a workbook parser, logic
+to skip a duplicate aggregate sheet, two different duration encodings across
+editions, and retry handling for a host that intermittently rejects scripts —
+about 170 lines of bespoke fetcher in this repository, plus the CI round-trips
+it took to get them right. Fifteen lines against the published shape, 170
+against the raw one: the difference is the tax this essay is asking government
+to stop levying on every consumer separately.
+
+---
+
 ## Frequently asked questions
 
 ### Why can't AI agents reliably read UK government open data?
@@ -549,7 +674,7 @@ a thin series profile and a reference implementation that can help define what
 ## References
 
 - Govviz live reference implementation: [overview](https://egly443.github.io/Govviz/overview), [open data portal](https://egly443.github.io/Govviz/data/), [catalogue](https://egly443.github.io/Govviz/data/catalog.json), [conformance report](https://egly443.github.io/Govviz/data/conformance-report.html), [health history](https://egly443.github.io/Govviz/data/health-history.json), [MCP descriptor](https://egly443.github.io/Govviz/data/mcp.json).
-- Govviz companion artefacts: [AI-ready series profile](https://github.com/Egly443/Govviz/blob/main/docs/conformance/ai-ready-series-profile.md), [conformance suite](https://github.com/Egly443/Govviz/tree/main/docs/conformance), [benchmark cases](https://github.com/Egly443/Govviz/tree/main/docs/benchmarks), [producer guide](https://github.com/Egly443/Govviz/blob/main/docs/producer-guide.md), [feedback loop](https://github.com/Egly443/Govviz/blob/main/docs/feedback-loop.md).
+- Govviz companion artefacts: [AI-ready series profile](https://github.com/Egly443/Govviz/blob/main/docs/conformance/ai-ready-series-profile.md), [conformance suite](https://github.com/Egly443/Govviz/tree/main/docs/conformance), [the fifteen-line probe](https://github.com/Egly443/Govviz/blob/main/docs/conformance/probe-15-lines.mjs), [benchmark cases](https://github.com/Egly443/Govviz/tree/main/docs/benchmarks), [producer guide](https://github.com/Egly443/Govviz/blob/main/docs/producer-guide.md), [feedback loop](https://github.com/Egly443/Govviz/blob/main/docs/feedback-loop.md).
 - GDS and DSIT, *Guidelines and best practices for making government datasets ready for AI* (19 January 2026): [gov.uk](https://www.gov.uk/government/publications/making-government-datasets-ready-for-ai/guidelines-and-best-practices-for-making-government-datasets-ready-for-ai).
 - DSIT, *National Data Library: progress update, January 2026* (26 January 2026): [gov.uk](https://www.gov.uk/government/publications/national-data-library-progress-update-january-2026).
 - ODI, *Prototyping an AI-ready National Data Library* (March 2026): [theodi.org](https://theodi.org/insights/reports/prototyping-an-ai-ready-national-data-library/).

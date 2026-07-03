@@ -386,6 +386,7 @@ function buildSeries(s, dept) {
       "Freshness metadata is inferred from observed periods and fetch timestamps; it is not an official release calendar.",
       "The contact and accountability route remains the primary producer's published route, not a Govviz official statistics contact.",
       "No upstream policy-as-code conformance assertion has been made by the primary producer.",
+      "The licence field is the compiler's per-source determination (OGL v3 for Crown-body sources, CC-BY 4.0 for World Bank series), not a producer assertion; consumers should verify against the upstream publication.",
     ],
     latest: dataLatest,
     distribution: [dataLatest, versioned, csvwUrl, id],
