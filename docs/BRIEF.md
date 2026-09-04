@@ -222,16 +222,28 @@ API. Простые T3/M4 источники (уже готовый чистый
       ссылка на этот файл-план — `CLAUDE.md` переписан (2026-09-04)
 
 ### Этап 2 — Исследование источников
-- [~] Вместе с агентом (через веб-поиск/fetch) найти API/датасеты для
-      каждого показателя из `INDICATORS-ee.md` — черновик файла создан
-      (2026-09-04), 8 министерств × 3 линзы, 10 показателей с
-      подтверждённым источником (✅), 12 кандидатов требуют уточнения (🔎),
-      см. `docs/INDICATORS-ee.md`
-- [ ] Для каждого — получить реальный пример ответа API до написания кода —
-      **не выполнено в этой сессии**: песочница блокирует прямой fetch к
-      внешним хостам (WebFetch/curl), доступен только WebSearch — нужен
-      либо CI-проба (по образцу build-data.mjs в оригинале), либо сессия
-      с живым сетевым доступом
+- [x] Вместе с агентом (через веб-поиск/fetch) найти API/датасеты для
+      каждого показателя из `INDICATORS-ee.md` — файл создан (2026-09-04),
+      затем на второй сессии в тот же день (живой сетевой доступ) все 🔎
+      закрыты. Итог: 8 министерств, 26 строк, **19 ✅** (все с реально
+      полученным значением), **6 🔴** (заблокированы по конкретной причине),
+      **1 ❓** (reoffending rate, не исследовано) — с запасом перекрывает
+      цель v1 в 30–40 показателей (раздел 10), см. `docs/INDICATORS-ee.md`
+- [x] Для каждого — получить реальный пример ответа API до написания кода —
+      выполнено (2026-09-04, вторая сессия с живым сетевым доступом —
+      `curl` работал напрямую, без проксирования). Все 12 строк 🔎 из
+      первого прохода закрыты: 11 стали ✅ с реальным полученным значением
+      (Eurostat `hlth_hlye`/`demo_mlexpec`/`env_air_gge`/`isoc_r_broad_h`,
+      Statistikaamet `RAA0013`/`TS093`/`HT121`+`HT235`, TAI `HH08`, COFOG
+      `RR056` для здравоохранения, CSV-файлы `statistika.justdigi.ee` для
+      преступности), 4 уточнены до более точного 🔴 (численность полиции,
+      подушевое финансирование школ, показатели судов, численность
+      заключённых — у каждого теперь конкретная причина блокировки, не
+      просто "не найдено поиском"). Также найдены прямые файловые ссылки
+      EMTA (`ncfailid.emta.ee`) — но это подетальные микроданные по
+      компаниям, а не готовый временной ряд, требуют агрегации; отложено
+      как задача v2. Подробности и реальные значения — в
+      `docs/INDICATORS-ee.md` (пометка "live-verified 2026-09-04").
 
 ### Этап 3 — Спецификация индикаторов
 - [ ] Заполнить `docs/INDICATORS-ee.md` (см. раздел 5)
@@ -344,9 +356,34 @@ Content-Type: application/json
 ### TAI (здравоохранение) — тот же паттерн, другой домен
 ```
 GET https://statistika.tai.ee/api/v1/en/Andmebaas
-GET https://statistika.tai.ee/api/v1/en/Andmebaas/04THressursid/02Ravivoodid/01Aastastatistika
+GET https://statistika.tai.ee/api/v1/en/Andmebaas/04THressursid/11HAHaiglad/HH08.px
 ```
-Тоже PxWeb → тот же код фетчера, что и для Statistikaamet, с заменой базового URL.
+Тоже PxWeb → тот же код фетчера, что и для Statistikaamet, с заменой базового
+URL. `HH08.px` проверен вживую 2026-09-04 — "Hospitals' annual average beds…",
+годы 2003–2024, реальные данные по койкам (`Näitaja=0`, `Ravivoodi liik=0` =
+итог по стране).
+
+### Eurostat — dissemination API, GET only, без ключа
+```
+GET https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/{dataset}?format=JSON&geo=EE&lang=EN
+```
+Проверено вживую 2026-09-04 на нескольких датасетах. **Важно**: сначала
+запросить без доп. фильтров, чтобы узнать реальные имена размерностей и
+коды категорий из ответа (`dimension.<code>.category.index`) — имена не
+всегда совпадают с "логичным" вариантом (напр. `hlth_hlye` использует
+размерность `hlth_hle`, а не `indic_he`; `env_air_gge` использует
+`src_crf=TOTXMEMO`, а не произвольный код сектора). Подтверждённые рабочие
+запросы:
+```
+GET .../data/hlth_hlye?format=JSON&geo=EE&sex=T&hlth_hle=HLY_Y0&lang=EN   → здоровые годы жизни при рождении
+GET .../data/demo_mlexpec?format=JSON&geo=EE&sex=T&age=Y_LT1&lang=EN     → ожидаемая продолжительность жизни
+GET .../data/env_air_gge?format=JSON&geo=EE&airpol=GHG&unit=THS_T&src_crf=TOTXMEMO&lang=EN  → парниковые газы, всего
+GET .../data/isoc_r_broad_h?format=JSON&geo=EE&lang=EN                  → домохозяйства с широкополосным доступом
+```
+Формат ответа — JSON-stat (значения в плоском объекте `value` с числовыми
+индексами, расшифровка индексов — в `dimension.time.category.index`), не
+путать с форматом PxWeb (`data`/`columns` у Statistikaamet/TAI) — это два
+разных парсера, не один общий хелпер.
 
 ### Eesti Pank — не PxWeb, обходной путь через ECB SDW
 Прямого API не нашли (`statistika.eestipank.ee` — JS-приложение, перебор
@@ -363,11 +400,44 @@ ECB Data Portal — это отдельная небольшая задача а
 
 ### EMTA (налоги) — файлы, не API
 Открытые данные лежат как готовые файлы (CSV/XLSX) по прямым ссылкам на
-странице `emta.ee/eraklient/.../statistika-ja-avaandmed`, обновляются по
+странице `emta.ee/en/.../statistics-and-open-data`, обновляются по
 расписанию (например, налоговые поступления — 2-го числа каждого месяца).
-Фетчер здесь не JSON-запрос, а: скачать файл по URL → распарсить CSV/XLSX
-(как xlsx-парсер в оригинальном `build-data.mjs` для британских
-источников) → нормализовать в `{date, value}[]`.
+Конкретные ссылки подтверждены вживую 2026-09-04 (хостятся отдельно, на
+`ncfailid.emta.ee`, не на `emta.ee`):
+```
+GET https://ncfailid.emta.ee/s/e4DneiWeKFfje6d/download/tasutud_maksud_kaesolev_aasta_eng.csv   (текущий год)
+GET https://ncfailid.emta.ee/s/K8snLYNdZnqJCRn/download/tasutud_maksud_varasemad_aastad_eng.csv (прошлые годы)
+```
+**Но:** это не готовый временной ряд, а подетальные микроданные —
+`Registry code, Name, Type, County, Activity, Year, State taxes Q1–Q4,
+Labour taxes Q1–Q4, Turnover Q1–Q4, Number of employees Q1–Q4`, одна
+строка = одна компания за год (~62 МБ). Фетчер здесь не JSON-запрос, а:
+скачать файл → распарсить CSV → **агрегировать** по нужному разрезу
+(тот же xlsx/csv-парсер, что и в оригинальном `build-data.mjs` для
+британских источников, плюс шаг агрегации, которого не было в оригинале).
+Ссылки на файлы — Nextcloud share-токены (`/s/<token>/`), которые могут
+измениться при переиздании — фетчер должен переоткрывать HTML-страницу
+источника и вытаскивать текущий `href`, а не хранить URL как константу.
+Учитывая, что налоговая нагрузка (% ВВП) уже закрыта World Bank
+`GC.TAX.TOTL.GD.ZS` (✅, простой JSON), EMTA-микроданные — кандидат v2, не
+обязательный показатель v1.
+
+### Justiits-portal (`statistika.justdigi.ee`) — статичные CSV на Drupal-сайте
+Не PxWeb и не JSON:API (проверено — `/jsonapi` даёт 404, JSON:API-модуль не
+включён), а обычный Drupal 10 сайт, который на странице
+`/en/crime-statistics` линкует готовые CSV прямыми ссылками вида
+`/sites/default/files/<yyyy-mm>/<Name>_eng.csv`. Пример, проверенный
+вживую 2026-09-04:
+```
+GET https://statistika.justdigi.ee/sites/default/files/2026-02/Kuriteod%20kokku_masskuriteod_eng.csv
+```
+`text/csv`, `;`-разделитель, `Type of crime;Year;Number of Offences`,
+реальные значения (Total 2024 = 28345, 2023 = 27465, …). Путь
+дата-меченный и сдвигается при переиздании — фетчер должен парсить
+`/en/crime-statistics`, находить актуальный `href` по тексту ссылки (не
+хардкодить `/2026-02/...`), затем скачивать и парсить сам CSV. Разделов
+про суды (courts) или тюрьмы на этом портале нет вообще — только
+crime-statistics, victim-survey, overview-lobby-meetings.
 
 ### Практический вывод для Этапа 4 (каркас)
 Стоит сразу написать один переиспользуемый хелпер `pxweb(baseUrl, path, query)`
