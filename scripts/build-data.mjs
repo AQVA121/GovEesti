@@ -2504,6 +2504,50 @@ const SOURCES = [
       ]),
   },
 
+  // General government health expenditure per capita (VFM) — DERIVED, not a
+  // direct pass-through: Statistikaamet's RR056 (COFOG expenditure by
+  // function, Sektor=1 "S.13 General government", Valitsemisfunktsioon=48
+  // "07 Health", Näitaja=12 "Total expenditure", EUR millions) divided by
+  // World Bank population (SP.POP.TOTL). Statistikaamet does not publish a
+  // ready per-capita health-spend series.
+  {
+    id: "soc-health-spend-per-capita",
+    // Widened from the Этап 3 spec's [500, 3000]: that range was derived
+    // from only the 2015-2024 window. The live full-history pull (1995-2024)
+    // shows a real, monotonic climb from €96.61 (1995) to €1,836.72 (2024) —
+    // a poorer post-Soviet Estonia, not an anomaly — so the original min
+    // dropped 12 of 30 real points. min widened to keep the full history.
+    min: 50,
+    max: 3000,
+    get: async () => {
+      const RR056_URL =
+        "https://andmed.stat.ee/api/v1/en/stat/majandus/rahandus/valitsemissektori-rahandus/valitsemissektori-tulud-kulud/RR056.PX";
+      const spend = await pxweb(RR056_URL, [
+        { code: "Sektor", selection: { filter: "item", values: ["1"] } },
+        { code: "Valitsemisfunktsioon", selection: { filter: "item", values: ["48"] } },
+        { code: "Näitaja", selection: { filter: "item", values: ["12"] } },
+        { code: "Aasta", selection: { filter: "all", values: ["*"] } },
+      ]);
+      const pop = await wb("SP.POP.TOTL", "EE");
+      const popByYear = new Map(pop.map((p) => [p.date.slice(0, 4), p.value]));
+      const points = spend
+        .map((p) => {
+          const population = popByYear.get(p.date.slice(0, 4));
+          // RR056 is EUR millions; population is an absolute headcount.
+          return population
+            ? { date: p.date, value: +((p.value * 1_000_000) / population).toFixed(2) }
+            : null;
+        })
+        .filter((p) => p != null);
+      if (!points.length)
+        throw new Error("soc-health-spend-per-capita: no overlapping years between RR056 and population");
+      // Both pxweb() and wb() call setSrc — re-assert the primary (spend)
+      // source so provenance points at RR056, not the population lookup.
+      setSrc(RR056_URL);
+      return points;
+    },
+  },
+
   // --- confirmed working (real ONS data) ---
   { id: "hmt-cost-of-living", line: "cpi", min: -5, max: 30, get: () => ons(INFLATION, "D7G7", "mm23", "years") },
   { id: "hmt-psnd", min: 10, max: 130, get: () => ons(PUBFIN, "HF6X", "pusf", "years") },
