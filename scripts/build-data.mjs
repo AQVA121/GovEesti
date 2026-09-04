@@ -2725,6 +2725,14 @@ const SOURCES = [
       ),
   },
 
+  // Renewable energy share of gross final consumption — Eurostat nrg_ind_ren.
+  {
+    id: "clim-renewable-share",
+    min: 5,
+    max: 55,
+    get: () => eurostat("nrg_ind_ren", { geo: "EE", nrg_bal: "REN" }),
+  },
+
   // --- confirmed working (real ONS data) ---
   { id: "hmt-cost-of-living", line: "cpi", min: -5, max: 30, get: () => ons(INFLATION, "D7G7", "mm23", "years") },
   { id: "hmt-psnd", min: 10, max: 130, get: () => ons(PUBFIN, "HF6X", "pusf", "years") },
