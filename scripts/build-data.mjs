@@ -506,6 +506,44 @@ async function pxweb(url, query) {
   throw lastErr || new Error(`PxWeb ${url}: failed`);
 }
 
+// --- Justiits- ja Digiministeerium statistics portal (GovEesti) ---
+// Not an API: the crime-statistics page links a direct CSV file whose path
+// is date-stamped and moves whenever the ministry republishes it (confirmed
+// live 2026-09-04, docs/INDICATORS-ee.md). So the fetcher scrapes the
+// current href off the page each run, rather than hardcoding a path. Real
+// CSV shape confirmed live: UTF-8 with a BOM, CRLF line endings, ';'
+// delimiter, header "Type of crime;Year;Number of Offences".
+async function intRecordedCrimes() {
+  const PAGE_URL = "https://statistika.justdigi.ee/en/crime-statistics";
+  const pageRes = await fetch(PAGE_URL, fetchOpts({ accept: "text/html" }));
+  if (!pageRes.ok) throw new Error(`int-recorded-crimes: crime-statistics page → HTTP ${pageRes.status}`);
+  const html = await pageRes.text();
+  const m = html.match(/href="([^"]*masskuriteod[^"]*\.csv)"/);
+  if (!m)
+    throw new Error("int-recorded-crimes: could not find the recorded-crimes CSV link on the page — layout may have changed");
+  const csvUrl = new URL(m[1], PAGE_URL).href;
+  const csvRes = await fetch(csvUrl, fetchOpts({ accept: "text/csv" }));
+  if (!csvRes.ok) throw new Error(`int-recorded-crimes: CSV fetch → HTTP ${csvRes.status}`);
+  const text = (await csvRes.text()).replace(/^﻿/, "");
+  const lines = text.trim().split(/\r?\n/);
+  const header = lines[0].split(";");
+  const typeIdx = header.indexOf("Type of crime");
+  const yearIdx = header.indexOf("Year");
+  const valueIdx = header.indexOf("Number of Offences");
+  if (typeIdx < 0 || yearIdx < 0 || valueIdx < 0)
+    throw new Error(`int-recorded-crimes: unexpected CSV header: ${lines[0]}`);
+  const points = lines
+    .slice(1)
+    .map((l) => l.split(";"))
+    .filter((cols) => cols[typeIdx] === "Total")
+    .map((cols) => ({ date: `${cols[yearIdx]}-01-01`, value: Number(cols[valueIdx]) }))
+    .filter((p) => /^\d{4}-01-01$/.test(p.date) && Number.isFinite(p.value))
+    .sort((a, b) => (a.date < b.date ? -1 : 1));
+  if (!points.length) throw new Error("int-recorded-crimes: no 'Total' rows found in CSV");
+  setSrc(csvUrl);
+  return points;
+}
+
 // --- gov.uk Content & Search APIs + spreadsheet (ODS/XLSX) parsing ---
 // Many official series are published only as dated Excel/ODS files whose asset
 // URLs change each release. The gov.uk Content API exposes a page's *current*
@@ -2585,6 +2623,15 @@ const SOURCES = [
       setSrc(HT121_URL);
       return points;
     },
+  },
+
+  // Recorded crimes, total. See intRecordedCrimes() above for the CSV
+  // scraping approach (the file path is not a stable API endpoint).
+  {
+    id: "int-recorded-crimes",
+    min: 15000,
+    max: 40000,
+    get: intRecordedCrimes,
   },
 
   // --- confirmed working (real ONS data) ---
