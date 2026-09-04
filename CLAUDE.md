@@ -69,17 +69,24 @@ metadata) — not Estonian or Russian by default. See BRIEF.md §2.
 - `src/lib/analytics.ts` — generic cookieless GoatCounter wrapper, no UK
   content, kept as-is.
 - `scripts/build-data.mjs` — fetch pattern (try/catch per source, `setSrc()`,
-  retries) is reused as-is; the UK-specific `SOURCES` array/fetchers inside
-  it are **not yet replaced** (still UK, Этап 5 work) — a `pxweb()` helper
-  (Statistikaamet/TAI) and a CSV/XLSX file fetcher (EMTA) will replace them
-  (BRIEF.md §5, §9).
-- `scripts/check-open-data.mjs` — the `validRange` guard idea is genuinely
-  core (see the hard rule below), but this file's current implementation is
-  the **full DCAT-conformance validator** — heavier than what CLAUDE.md
-  originally assumed, and it depended on the schema/catalogue removed below.
-  It is disconnected from `npm run build`/CI as of Этап 4 (see its header
-  comment) and needs a real rewrite against whatever the minimal open-data
-  layer (BRIEF.md §7, Этап 8) emits — not a restoration as-is.
+  retries) is reused as-is. The UK `SOURCES` array/fetchers were fully
+  removed at Этап 4's follow-up cleanup (git history has the originals);
+  `eurostat()`, `pxweb()`/`pxwebDate()` (Statistikaamet/TAI, one engine),
+  and a one-off `intRecordedCrimes()` CSV scraper (Этап 5) now cover all 19
+  confirmed Estonian indicators. `wb()`/`wbCompare()` and the generic
+  XLSX/ODS helpers are kept as real infra, not UK content — `wbCompare()`
+  isn't used by any current source but is scoped for BRIEF.md §10's v2
+  neighbour comparison (Latvia/Lithuania), and the spreadsheet helpers
+  await the still-unwired EMTA file source (§5/§9).
+- `scripts/check-open-data.mjs` — rewritten at Этап 7 (2026-09-06) into a
+  small, self-contained guard: reads `src/generated/seriesData.ts` directly
+  (no dependency on the not-yet-built minimal open-data layer, §8) and
+  fails the build if any baked series has no `validRange` guard, or any
+  point falls outside it. Reconnected to `npm run build` and both CI
+  workflows. Guards are now per-line where a series has multiple lines
+  (`soc-life-expectancy`'s two lines have genuinely different plausible
+  ranges) — `build-data.mjs`'s main loop bakes a `guard` onto each line
+  object, not just once at the record level.
 - `docs/conformance/probe-15-lines.mjs` — kept per the original plan, base
   URL adapted to GovEesti's expected `/data/` path — but that path doesn't
   exist yet either (same Этап 8 dependency as above), so this probe has

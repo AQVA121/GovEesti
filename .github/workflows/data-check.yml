@@ -38,8 +38,9 @@ jobs:
       - name: Fixture regression check
         if: always()
         run: node tools/loop/ci-reward.mjs --check-fixtures --summary --log=fetch.log >> "$GITHUB_STEP_SUMMARY"
-      # The AI-ready open-data conformance gate (build-open-data.mjs +
-      # check-open-data.mjs) was removed along with the rest of the DCAT/CSVW/MCP
-      # apparatus during the Estonia fork (BRIEF.md §3) — see scripts/
-      # check-open-data.mjs's header for what a minimal replacement needs
-      # (BRIEF.md §7, Этап 8).
+      # Guard gate (BRIEF.md §7, Этап 7): every baked series must have a
+      # validRange and every value must obey it — fails the job otherwise.
+      # Rewritten 2026-09-06 to check seriesData.ts directly, no dependency
+      # on the full DCAT/CSVW/MCP apparatus removed in the Estonia fork.
+      - name: Guard check (validRange)
+        run: node scripts/check-open-data.mjs

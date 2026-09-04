@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/prerender-static-routes.mjs && node scripts/prerender-departments.mjs",
+    "build": "vite build && node scripts/prerender-static-routes.mjs && node scripts/prerender-departments.mjs && node scripts/check-open-data.mjs",
     "fetch-data": "node scripts/build-data.mjs",
     "prerender-static-routes": "node scripts/prerender-static-routes.mjs",
     "check-deployed-site": "node scripts/check-deployed-site.mjs",
