@@ -5,8 +5,12 @@
 //   node docs/conformance/probe-15-lines.mjs [series-id]
 //
 // GOVVIZ_DATA_BASE overrides the portal root (e.g. a local build) for testing.
-const base = process.env.GOVVIZ_DATA_BASE ?? "https://egly443.github.io/Govviz/data";
-const id = process.argv[2] ?? "defra-sewage-hours";
+// NOTE: the minimal /data/series/{id}.json + data.csv open-data layer this
+// probe expects is not built yet — that's Этап 8 (BRIEF.md §7/§8). Until
+// then this probe has nothing to fetch; the base URL/default id below are
+// forward-pointing at what Этап 8 is expected to publish, not live today.
+const base = process.env.GOVVIZ_DATA_BASE ?? "https://aqva121.github.io/GovEesti/data";
+const id = process.argv[2] ?? "fin-debt-gdp";
 const rec = await (await fetch(`${base}/series/${id}.json`)).json();
 const rows = (await (await fetch(rec.latest)).text()).trim().split("\n");
 const cols = rows[0].split(",");

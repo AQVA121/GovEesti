@@ -1,47 +1,31 @@
 # Data licence
 
-Govviz is a **downstream compiler**: it fetches official UK statistics from their
-primary producers, validates them, and re-publishes them as an AI-ready open-data
-product (see [`/data/`](https://egly443.github.io/Govviz/data/) and the
-[AI-ready series profile](docs/conformance/ai-ready-series-profile.md)). Each
-series' `licence` field, and its CSVW `dc:license`, states the licence that
-applies to that series.
+GovEesti is a **downstream compiler**: it fetches official Estonian and EU
+statistics from their primary producers and re-publishes them as trend charts.
+Each series names its own `producer` (who officially issues the data) separately
+from `compiler` (GovEesti, and what we did to it — see `CLAUDE.md`).
 
-## Per-series licence
+**Status: not yet audited.** A full per-source licence audit is explicitly
+scoped as its own step — BRIEF.md §7 "Этап 10" — and hasn't run yet. This file
+is a placeholder, not the authoritative per-series licence statement that
+Этап 10 will produce. Until then, treat the licence notes gathered per source
+during Этап 2/3 research (`docs/INDICATORS-ee.md`, "Licence confidence"
+section) as working assumptions, not audited fact:
 
-- **UK-government-sourced series** (ONS, gov.uk, NHS England, DfE, Defra/EA,
-  MHCLG, HMRC, …) are published under the
-  [Open Government Licence v3.0 (OGL)](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).
-  Contains public sector information licensed under the OGL v3.0.
-- **World Bank–derived series** carry
-  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); attribution to the
-  World Bank (and its upstream national sources) is preserved in each record's
-  `provenance`.
-
-The authoritative, machine-readable licence for any series is the `licence`
-field of its metadata record at `/data/series/{id}.json`.
-
-## The compilation
-
-The *arrangement, harmonisation and AI-ready packaging* (the catalogue, the
-per-series records, the tidy CSV/CSVW, the validation ranges and provenance
-lineage) is published under **OGL v3.0**, consistent with the predominant
-upstream licence, so the whole product is reusable by a fifteen-line script and
-an everyday AI agent.
+- **Eurostat**-sourced series: CC BY 4.0 (webpage-confirmed).
+- **World Bank**-derived series: CC BY 4.0 (well-documented, high confidence).
+- **Statistikaamet** (Statistics Estonia)-sourced series: CC BY-SA 4.0
+  (search-confirmed by multiple independent sources, not yet read directly
+  off a primary licence page).
+- **TAI** (Tervise Arengu Instituut) and the Justiits- ja Digiministeerium
+  statistics portal: no formally named licence found — only a "free to use,
+  please cite the source" statement (TAI) or nothing at all (Justice portal).
+  Needs a direct answer at Этап 10, not assumed.
 
 ## Provenance, not impersonation
 
-Every record names its **primary producer** in `producer` and
-`provenance.source`, and separately names Govviz in the `compiler` object
-(`name`, `url`, `compiledAt`, `pipelineCommit`, `sourceBytesHash`, and
-`conformanceVersion`). `upstreamConformance` defaults to
-`not-asserted-by-primary-publisher` unless the primary producer has published its
-own assertion.
-
-Govviz does not assert authorship of the underlying statistics; it re-publishes
-them in a machine-first shape, with upstream file and content/byte fingerprints
-recorded for verifiable lineage where available. Freshness fields such as
-`expectedCadence`, `latestObservedPeriod`, `latestFetchedAt`,
-`freshnessStatus`, `freshnessReason`, and `estimatedNextPeriod` are compiler-side
-metadata. `nextRelease` is kept `null` unless a source-specific official release
-calendar is known.
+Every series names its **primary producer** — GovEesti does not assert
+authorship of the underlying statistics, and does not claim official status
+or certification for any indicator it republishes. See `CLAUDE.md`'s hard
+rule: no fabricated or interpolated data — a missing or unfetched source
+renders an explicit "no source yet" placeholder instead of a generated number.
