@@ -2802,6 +2802,14 @@ const SOURCES = [
     get: () => wb("NE.EXP.GNFS.ZS", "EE"),
   },
 
+  // R&D expenditure, % of GDP — World Bank (compiled from UNESCO/Eurostat), EE.
+  {
+    id: "econ-rd-spend-gdp",
+    min: 0,
+    max: 4,
+    get: () => wb("GB.XPD.RSDV.GD.ZS", "EE"),
+  },
+
   // --- confirmed working (real ONS data) ---
   { id: "hmt-cost-of-living", line: "cpi", min: -5, max: 30, get: () => ons(INFLATION, "D7G7", "mm23", "years") },
   { id: "hmt-psnd", min: 10, max: 130, get: () => ons(PUBFIN, "HF6X", "pusf", "years") },
