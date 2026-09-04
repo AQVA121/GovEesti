@@ -2,10 +2,12 @@ import { Footer } from "./Footer";
 import { TopNav } from "./TopNav";
 
 /**
- * User-facing transparency page: documents how Govviz sources, validates and
+ * User-facing transparency page: documents how GovEesti sources, validates and
  * presents its data — the methodology counterpart to the charts themselves.
  * Copy is kept accurate to the actual implementation (real-data-only pipeline,
- * range guards, staleness flags, per-number provenance).
+ * range guards, staleness flags, per-number provenance). GovEesti is a
+ * fork/adaptation of Govviz (github.com/Egly443/Govviz, UK) for Estonia — see
+ * CLAUDE.md and docs/BRIEF.md for the fork plan and current build status.
  */
 export function AboutPage() {
   return (
@@ -13,22 +15,32 @@ export function AboutPage() {
       <TopNav />
       <main className="mx-auto max-w-3xl px-4 pb-20 pt-10 sm:px-6">
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          How Govviz is built
+          How GovEesti is built
         </h1>
         <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-          Govviz is a static dashboard of long-run UK government performance
-          indicators. Every chart is meant to be trustworthy by construction —
-          here is exactly how, and where the limits are.
+          GovEesti is a static dashboard of long-run Estonian government
+          performance indicators — a fork/adaptation of{" "}
+          <a
+            href="https://github.com/Egly443/Govviz"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            Govviz
+          </a>{" "}
+          (UK). Every chart is meant to be trustworthy by construction — here
+          is exactly how, and where the limits are.
         </p>
 
         <div className="mt-10 space-y-8">
           <Section title="Real official data only — never fabricated">
             Every series shows real figures fetched from a reputable public
-            source (ONS, the World Bank, gov.uk, NHS England, DfE and others).
-            There is no illustrative or synthetic data anywhere in the
-            production build: an indicator with no source wired yet renders an
-            explicit <em>“no source yet”</em> placeholder rather than an invented
-            trend line. If you see a chart, the numbers behind it are real.
+            source (Statistikaamet, Eurostat, the World Bank, TAI and
+            others). There is no illustrative or synthetic data anywhere in
+            the production build: an indicator with no source wired yet
+            renders an explicit <em>“no source yet”</em> placeholder rather
+            than an invented trend line. If you see a chart, the numbers
+            behind it are real.
           </Section>
 
           <Section title="Provenance you can check">
@@ -78,10 +90,12 @@ export function AboutPage() {
             a slighter move) shows the recent direction, computed from a robust
             slope with a noise floor so a wobble doesn’t read as a trend. Every
             indicator in a department gets an <em>equal-size</em> tile, so it is a
-            department’s whole block — not the individual tiles — whose area
-            reflects its approximate Total Managed Expenditure (a hand-entered HM
-            Treasury estimate, not a fetched series); the lead indicator is marked
-            with an accent ring, not a bigger tile.
+            department’s whole block — not the individual tiles — whose area is
+            meant to reflect its approximate budget. That figure has not been
+            sourced yet for GovEesti (see <code>SPEND_BASIS</code> in{" "}
+            <code>departments.ts</code>), so every ministry currently renders at
+            equal size rather than showing an unverified number; the lead
+            indicator is marked with an accent ring, not a bigger tile.
           </Section>
 
           <Section title="Accessibility">
@@ -92,25 +106,17 @@ export function AboutPage() {
             colour-blindness and greyscale.
           </Section>
 
-          <Section title="Published as AI-ready open data — the essay, made real">
-            Govviz doesn’t just consume official data; it re-publishes every
-            series as a{" "}
-            <a
-              href={`${import.meta.env.BASE_URL}data/`}
-              className="text-primary hover:underline"
-            >
-              reference implementation of its own AI-ready series profile
-            </a>
-            . Each indicator has a stable, resolvable id that returns JSON
-            metadata — unit, coverage, periodicity, revision status, provenance,
-            licence and a published validation range — pointing at long-format
-            tidy CSV with a CSVW schema, all catalogued in DCAT and reachable
-            over an open agent (MCP) interface. So an agent, or a fifteen-line
-            script, can read any Govviz series without scraping or guessing — and
-            a build-time conformance gate fails the release if any record
-            doesn’t meet the profile. Govviz is a downstream compiler: every
-            record names its primary producer and records the exact upstream
-            file it was built from.
+          <Section title="AI-ready open data — planned, not built yet">
+            The UK original this project forked from re-publishes every series
+            as a machine-readable record (stable id, tidy CSV, CSVW schema, a
+            DCAT catalogue, an MCP agent interface, a build-time conformance
+            gate). GovEesti has not built that layer yet — it was deliberately
+            dropped during the fork (see BRIEF.md §3) in favour of a much
+            smaller version: a plain <code>/data/series/&#123;id&#125;.json</code>{" "}
+            plus <code>data.csv</code> per indicator, with no DCAT/CSVW/MCP
+            apparatus. That minimal layer is scoped as its own later step
+            (BRIEF.md §7, “Этап 8”) and does not exist in this build yet — the
+            claim will be updated here once it does, not before.
           </Section>
 
           <Section title="Built in the open">
@@ -119,7 +125,7 @@ export function AboutPage() {
             deploy; the code that does it — and the per-series source manifest —
             is public.{" "}
             <a
-              href="https://github.com/Egly443/Govviz"
+              href="https://github.com/AQVA121/GovEesti"
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary hover:underline"

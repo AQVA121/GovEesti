@@ -1,8 +1,8 @@
 import type { TrendSeries } from "./data";
 
 const REPO_ISSUE =
-  "https://github.com/Egly443/Govviz/issues/new?template=data-quality.yml";
-const SITE_DATA = "https://egly443.github.io/Govviz/data";
+  "https://github.com/AQVA121/GovEesti/issues/new?template=data-quality.yml";
+const SITE_DATA = "https://aqva121.github.io/GovEesti/data";
 
 function issueUrl(series: TrendSeries, observedValue?: string) {
   const params = new URLSearchParams({
@@ -10,7 +10,7 @@ function issueUrl(series: TrendSeries, observedValue?: string) {
   });
   const body = [
     `Series id: ${series.id}`,
-    `Govviz record: ${SITE_DATA}/series/${series.id}.json`,
+    `GovEesti record: ${SITE_DATA}/series/${series.id}.json`,
     `Official source: ${series.sourceUrl}`,
     observedValue ? `Observed value: ${observedValue}` : null,
   ]

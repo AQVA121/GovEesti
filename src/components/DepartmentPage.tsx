@@ -1,7 +1,6 @@
 import { Footer } from "./Footer";
 import { TopNav } from "./TopNav";
 import { TrendPanel } from "./TrendPanel";
-import { TurnoverBreakdown } from "./TurnoverBreakdown";
 import { DepartmentTabs } from "./DepartmentTabs";
 import { realAsOf } from "./data";
 import {
@@ -105,21 +104,9 @@ export function DepartmentPage({ department: dept }: Props) {
           </section>
         )}
 
-        {/* Workforce small multiples (DHSC only) */}
-        {dept.code === "dhsc" && (
-          <section className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              <TurnoverBreakdown />
-            </div>
-            <SynthesisCard dept={dept} />
-          </section>
-        )}
-
-        {dept.code !== "dhsc" && (
-          <section className="mt-8">
-            <SynthesisCard dept={dept} />
-          </section>
-        )}
+        <section className="mt-8">
+          <SynthesisCard dept={dept} />
+        </section>
 
         <Footer />
       </main>

@@ -9,23 +9,17 @@ export function TopNav() {
           <span className="grid h-7 w-7 place-items-center rounded-md bg-primary/15 text-primary">
             <BarChart3 className="h-4 w-4" />
           </span>
-          <span className="text-sm font-semibold tracking-tight">Govviz</span>
+          <span className="text-sm font-semibold tracking-tight">GovEesti</span>
           <span className="hidden text-xs text-muted-foreground sm:inline">
-            UK government performance
+            Estonian government performance
           </span>
         </Link>
         <nav className="flex items-center gap-4 text-xs text-muted-foreground">
-          <Link to="/data" className="hover:text-foreground">
-            Data
-          </Link>
-          <Link to="/blog" className="hover:text-foreground">
-            Essay
-          </Link>
           <Link to="/about" className="hover:text-foreground">
             How it&rsquo;s built
           </Link>
           <a
-            href="https://github.com/Egly443/Govviz"
+            href="https://github.com/AQVA121/GovEesti"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-foreground"

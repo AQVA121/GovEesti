@@ -6,7 +6,7 @@ import { initAnalytics, trackPageview } from "./lib/analytics";
 import "./styles.css";
 
 // GitHub Pages SPA fallback: public/404.html encodes the requested route into
-// a query string (e.g. /Govviz/?/dhsc). Restore the real path before the
+// a query string (e.g. /GovEesti/?/soc). Restore the real path before the
 // router reads window.location. See rafgraph/spa-github-pages.
 (function restoreSpaRoute() {
   const l = window.location;
@@ -25,7 +25,7 @@ import "./styles.css";
 })();
 
 // Match the Vite `base` so routes resolve under the GitHub Pages subpath
-// (e.g. /Govviz) in production and at root in dev.
+// (e.g. /GovEesti) in production and at root in dev.
 const basepath = import.meta.env.BASE_URL.replace(/\/+$/, "") || "/";
 
 const router = createRouter({ routeTree, basepath });
