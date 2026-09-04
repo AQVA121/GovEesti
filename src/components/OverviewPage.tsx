@@ -61,8 +61,7 @@ export function OverviewPage() {
           whose latest value is within the margin of error of its target; an
           accent ring marks each department&rsquo;s lead indicator. Every
           indicator in a department gets an equal-size tile, so a block&rsquo;s
-          area &mdash; not the individual tiles &mdash; reflects approximate
-          departmental {SPEND_BASIS.measure} (
+          area is meant to reflect approximate departmental spending — but{" "}
           <a
             href={SPEND_BASIS.url}
             target="_blank"
@@ -70,9 +69,10 @@ export function OverviewPage() {
             className="underline decoration-dotted underline-offset-2 hover:text-foreground"
             title={SPEND_BASIS.note}
           >
-            {SPEND_BASIS.source}, {SPEND_BASIS.asOf}
+            no confirmed per-ministry figure has been sourced yet
           </a>
-          ) — a static editorial estimate, not a fetched series.
+          , so every block is sized equally for now rather than shown with an
+          unverified number.
         </p>
 
         <Footer />

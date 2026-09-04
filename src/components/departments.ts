@@ -434,7 +434,7 @@ export const departments: Department[] = [
     blurb:
       "Health and social-protection outcomes: poverty, life expectancy, hospital capacity, and how much government spends per person on health.",
     synthesis:
-      "Source research is complete for four indicators (Этап 2/3, 2026-09-04); no data has been fetched yet (Этап 5). This synthesis will be written once real trend data is loaded.",
+      "All four indicators are live-fetched from their official sources (Этап 5, 2026-09-05). Editorial trend synthesis — interpreting what the numbers show — has not been written yet.",
     themes: ["Poverty", "Health outcomes", "Hospital capacity", "Spending"],
     hero: socPovertyRate,
     core: [socLifeExpectancy, socHospitalBeds, socHealthSpendPerCapita],
@@ -448,7 +448,7 @@ export const departments: Department[] = [
     blurb:
       "How the school system is resourced. Only one indicator (pupil:teacher ratio) has a confirmed, live source so far — PISA needs one more source probe before it can be added (see docs/INDICATORS-ee.md).",
     synthesis:
-      "Source research is complete for one indicator (Этап 2/3, 2026-09-04); no data has been fetched yet (Этап 5).",
+      "Its one indicator is live-fetched from Statistikaamet (Этап 5, 2026-09-05). Editorial trend synthesis has not been written yet.",
     themes: ["Class size", "Outcomes (pending)"],
     hero: eduPupilTeacherRatio,
     core: [],
@@ -462,7 +462,7 @@ export const departments: Department[] = [
     blurb:
       "Internal security. Recorded crime has a confirmed source; police headcount and rescue-service response times were researched but blocked — see docs/INDICATORS-ee.md.",
     synthesis:
-      "Source research is complete for one indicator (Этап 2/3, 2026-09-04); no data has been fetched yet (Этап 5).",
+      "Its one indicator is live-fetched from the Justice statistics portal (Этап 5, 2026-09-05). Editorial trend synthesis has not been written yet.",
     themes: ["Crime"],
     hero: intRecordedCrimes,
     core: [],
@@ -490,7 +490,7 @@ export const departments: Department[] = [
     blurb:
       "Defence spending and force size, benchmarked internationally via World Bank data.",
     synthesis:
-      "Source research is complete for two indicators (Этап 2/3, 2026-09-04); no data has been fetched yet (Этап 5).",
+      "Both indicators are live-fetched from World Bank data (Этап 5, 2026-09-05). Editorial trend synthesis has not been written yet.",
     themes: ["Spending", "Personnel"],
     hero: defSpendGdp,
     core: [defPersonnelPer1000],
@@ -504,7 +504,7 @@ export const departments: Department[] = [
     blurb:
       "The public finances: government debt, deficit, tax burden, and living standards via real GDP per capita. The strongest-sourced ministry so far — debt/deficit share a single, already live-verified Statistikaamet table.",
     synthesis:
-      "Source research is complete for four indicators (Этап 2/3, 2026-09-04); no data has been fetched yet (Этап 5).",
+      "All four indicators are live-fetched from their official sources (Этап 5, 2026-09-05). Editorial trend synthesis has not been written yet.",
     themes: ["Debt", "Deficit", "Tax", "Living standards"],
     hero: finDebtGdp,
     core: [finDeficitGdp, finTaxBurden, finGdpPerCapita],
@@ -518,7 +518,7 @@ export const departments: Department[] = [
     blurb:
       "Climate, energy and transport-safety outcomes: renewables share, greenhouse-gas emissions, and road deaths.",
     synthesis:
-      "Source research is complete for three indicators (Этап 2/3, 2026-09-04); no data has been fetched yet (Этап 5).",
+      "All three indicators are live-fetched from their official sources (Этап 5, 2026-09-05). Editorial trend synthesis has not been written yet.",
     themes: ["Emissions", "Renewables", "Road safety"],
     hero: climRenewableShare,
     core: [climGhgEmissions, climRoadDeaths],
@@ -532,7 +532,7 @@ export const departments: Department[] = [
     blurb:
       "The wider economy: employment, trade, research intensity, and digital infrastructure reach.",
     synthesis:
-      "Source research is complete for four indicators (Этап 2/3, 2026-09-04); no data has been fetched yet (Этап 5).",
+      "All four indicators are live-fetched from their official sources (Этап 5, 2026-09-05). Editorial trend synthesis has not been written yet.",
     themes: ["Employment", "Trade", "R&D", "Connectivity"],
     hero: econUnemploymentRate,
     core: [econExportsGdp, econRdSpendGdp, econBroadbandPenetration],
