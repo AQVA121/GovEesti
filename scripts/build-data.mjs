@@ -2415,6 +2415,33 @@ const SOURCES = [
       }),
   },
 
+  // Life expectancy at birth ⇄ healthy life years at birth (paired). Three
+  // entries share one id: the plain entry (no `line`) feeds the
+  // "representative" top-level `points` used for tile summaries, and the two
+  // `line` entries feed the two-line chart in TrendPanel. min/max per entry
+  // matches docs/INDICATORS-ee.md's Этап 3 spec, derived from the real
+  // 1960-2024 / 2004-2024 series fetched live during research.
+  {
+    id: "soc-life-expectancy",
+    min: 60,
+    max: 90,
+    get: () => eurostat("demo_mlexpec", { geo: "EE", sex: "T", age: "Y_LT1" }),
+  },
+  {
+    id: "soc-life-expectancy",
+    line: "life-expectancy",
+    min: 60,
+    max: 90,
+    get: () => eurostat("demo_mlexpec", { geo: "EE", sex: "T", age: "Y_LT1" }),
+  },
+  {
+    id: "soc-life-expectancy",
+    line: "healthy-life-years",
+    min: 30,
+    max: 70,
+    get: () => eurostat("hlth_hlye", { geo: "EE", sex: "T", hlth_hle: "HLY_Y0", unit: "YR" }),
+  },
+
   // --- confirmed working (real ONS data) ---
   { id: "hmt-cost-of-living", line: "cpi", min: -5, max: 30, get: () => ons(INFLATION, "D7G7", "mm23", "years") },
   { id: "hmt-psnd", min: 10, max: 130, get: () => ons(PUBFIN, "HF6X", "pusf", "years") },
