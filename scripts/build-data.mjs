@@ -465,6 +465,17 @@ async function eurostat(dataset, params = {}) {
 // base URL differs. POST is required for data (GET only returns metadata).
 // `query` is the PxWeb query array — every classification dimension must be
 // pinned explicitly (PxWeb does not default an omitted dimension to "all").
+// PxWeb time values are either a plain year ("2024") or a quarter
+// ("2019Q3", no space) — converts either to an ISO date (quarter -> its
+// start month), or returns null for an unrecognised format so the caller
+// drops it rather than emitting a bogus date.
+function pxwebDate(t) {
+  const s = String(t);
+  if (/^\d{4}$/.test(s)) return `${s}-01-01`;
+  const q = s.match(/^(\d{4})Q([1-4])$/);
+  if (q) return `${q[1]}-${String((Number(q[2]) - 1) * 3 + 1).padStart(2, "0")}-01`;
+  return null;
+}
 async function pxweb(url, query) {
   let lastErr;
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -492,8 +503,8 @@ async function pxweb(url, query) {
       if ((j.columns || []).filter((c) => c.type === "c").length !== 1)
         throw new Error(`PxWeb ${url}: expected exactly one content column — pin more dimensions in query`);
       const points = rows
-        .map((r) => ({ date: `${r.key[timeIdx]}-01-01`, value: Number(r.values[0]) }))
-        .filter((p) => /^\d{4}-01-01$/.test(p.date) && Number.isFinite(p.value))
+        .map((r) => ({ date: pxwebDate(r.key[timeIdx]), value: Number(r.values[0]) }))
+        .filter((p) => p.date != null && Number.isFinite(p.value))
         .sort((a, b) => (a.date < b.date ? -1 : 1));
       if (!points.length) throw new Error(`PxWeb ${url}: no usable points`);
       setSrc(url);
@@ -2762,6 +2773,25 @@ const SOURCES = [
         { code: "Kuu", selection: { filter: "item", values: ["00"] } },
         { code: "Aasta", selection: { filter: "all", values: ["*"] } },
       ]),
+  },
+
+  // Unemployment rate (15-74), quarterly — Statistikaamet TT3300. First
+  // quarterly PxWeb source (values like "2019Q3", not a plain year) —
+  // required extending pxweb()'s date parser (see pxwebDate() above).
+  {
+    id: "econ-unemployment-rate",
+    min: 2,
+    max: 22,
+    get: () =>
+      pxweb(
+        "https://andmed.stat.ee/api/v1/en/stat/sotsiaalelu/tooturg/tooturu-uldandmed/luhiajastatistika/TT3300.px",
+        [
+          { code: "Näitaja", selection: { filter: "item", values: ["UNEMP_RATE"] } },
+          { code: "Sugu", selection: { filter: "item", values: ["T"] } },
+          { code: "Vanuserühm", selection: { filter: "item", values: ["Y15-74"] } },
+          { code: "Vaatlusperiood", selection: { filter: "all", values: ["*"] } },
+        ],
+      ),
   },
 
   // --- confirmed working (real ONS data) ---
