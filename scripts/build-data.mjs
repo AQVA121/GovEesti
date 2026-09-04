@@ -2643,6 +2643,33 @@ const SOURCES = [
     get: () => wb("MS.MIL.XPND.GD.ZS", "EE"),
   },
 
+  // Military personnel per 1,000 population — DERIVED: World Bank
+  // MS.MIL.TOTL.P1 is an absolute headcount, not a per-capita rate (no WB
+  // series gives that directly), divided by SP.POP.TOTL and scaled per
+  // 1,000. Last updated by WB for 2020 as of 2026-09-04 — expect a short,
+  // stale-looking series, not a fetcher bug.
+  {
+    id: "def-personnel-per-1000",
+    min: 1,
+    max: 15,
+    get: async () => {
+      const PERSONNEL_URL = "https://api.worldbank.org/v2/country/EE/indicator/MS.MIL.TOTL.P1?format=json&per_page=20000";
+      const personnel = await wb("MS.MIL.TOTL.P1", "EE");
+      const pop = await wb("SP.POP.TOTL", "EE");
+      const popByYear = new Map(pop.map((p) => [p.date.slice(0, 4), p.value]));
+      const points = personnel
+        .map((p) => {
+          const population = popByYear.get(p.date.slice(0, 4));
+          return population ? { date: p.date, value: +((p.value / population) * 1000).toFixed(2) } : null;
+        })
+        .filter((p) => p != null);
+      if (!points.length)
+        throw new Error("def-personnel-per-1000: no overlapping years between personnel and population");
+      setSrc(PERSONNEL_URL);
+      return points;
+    },
+  },
+
   // --- confirmed working (real ONS data) ---
   { id: "hmt-cost-of-living", line: "cpi", min: -5, max: 30, get: () => ons(INFLATION, "D7G7", "mm23", "years") },
   { id: "hmt-psnd", min: 10, max: 130, get: () => ons(PUBFIN, "HF6X", "pusf", "years") },
