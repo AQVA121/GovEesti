@@ -2634,6 +2634,15 @@ const SOURCES = [
     get: intRecordedCrimes,
   },
 
+  // Defence spending, % of GDP — World Bank, same wb() helper as the UK
+  // entries below, just targeting Estonia.
+  {
+    id: "def-spend-gdp",
+    min: 0,
+    max: 6,
+    get: () => wb("MS.MIL.XPND.GD.ZS", "EE"),
+  },
+
   // --- confirmed working (real ONS data) ---
   { id: "hmt-cost-of-living", line: "cpi", min: -5, max: 30, get: () => ons(INFLATION, "D7G7", "mm23", "years") },
   { id: "hmt-psnd", min: 10, max: 130, get: () => ons(PUBFIN, "HF6X", "pusf", "years") },
