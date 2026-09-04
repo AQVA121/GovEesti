@@ -411,6 +411,55 @@ function wbCompare(id, indicator, { min, max, scale } = {}) {
   ];
 }
 
+// --- Eurostat dissemination API (GovEesti) ---
+// GET .../data/{dataset}?format=JSON&lang=EN&<dimension filters>. Every
+// dimension except `time` must be pinned to a single value in `params` (e.g.
+// geo: "EE"), or the JSON-stat `value` object's keys stop mapping 1:1 to time
+// periods and would silently produce wrong-but-plausible data — so this
+// throws instead of guessing when more than one non-time dimension varies.
+// Confirmed working live 2026-09-04, see docs/BRIEF.md §9.
+async function eurostat(dataset, params = {}) {
+  const qs = new URLSearchParams({ format: "JSON", lang: "EN", ...params });
+  const url = `https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/${dataset}?${qs}`;
+  let lastErr;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(url, fetchOpts({ accept: "application/json" }));
+      if (!res.ok) {
+        lastErr = new Error(`Eurostat ${dataset} → HTTP ${res.status}`);
+        if (res.status === 404) break;
+        await sleep(600 * (attempt + 1));
+        continue;
+      }
+      const j = await res.json();
+      const dims = j?.id ?? [];
+      const sizes = j?.size ?? [];
+      const unfiltered = dims.filter((d, i) => d !== "time" && sizes[i] > 1);
+      if (unfiltered.length)
+        throw new Error(`Eurostat ${dataset}: unfiltered dimension(s) ${unfiltered.join(",")} — pin them in params`);
+      const timeIndex = j?.dimension?.time?.category?.index;
+      const values = j?.value;
+      if (!timeIndex || !values || !Object.keys(values).length) {
+        lastErr = new Error(`Eurostat ${dataset}: no data for this filter combination`);
+        await sleep(600 * (attempt + 1));
+        continue;
+      }
+      const yearOf = Object.fromEntries(Object.entries(timeIndex).map(([year, idx]) => [idx, year]));
+      const points = Object.entries(values)
+        .map(([idx, value]) => ({ date: `${yearOf[Number(idx)]}-01-01`, value: Number(value) }))
+        .filter((p) => /^\d{4}-01-01$/.test(p.date) && Number.isFinite(p.value))
+        .sort((a, b) => (a.date < b.date ? -1 : 1));
+      if (!points.length) throw new Error(`Eurostat ${dataset}: no usable points`);
+      setSrc(url);
+      return points;
+    } catch (e) {
+      lastErr = e;
+      await sleep(600 * (attempt + 1));
+    }
+  }
+  throw lastErr || new Error(`Eurostat ${dataset}: failed`);
+}
+
 // --- gov.uk Content & Search APIs + spreadsheet (ODS/XLSX) parsing ---
 // Many official series are published only as dated Excel/ODS files whose asset
 // URLs change each release. The gov.uk Content API exposes a page's *current*
@@ -2346,6 +2395,26 @@ async function foiInTime() {
 }
 
 const SOURCES = [
+  // --- GovEesti (Этап 5, one source at a time — see BRIEF.md §7/§8) ---
+  // At-risk-of-poverty rate (60% of median equivalised income), Estonia.
+  // min/max = the validRange from docs/INDICATORS-ee.md's Этап 3 spec,
+  // derived from the real 2000-2025 series fetched live during research
+  // (observed 15.8-22.8%), not invented.
+  {
+    id: "soc-poverty-rate",
+    min: 5,
+    max: 35,
+    get: () =>
+      eurostat("ilc_li02", {
+        geo: "EE",
+        sex: "T",
+        age: "TOTAL",
+        unit: "PC",
+        rskpovth: "B_60",
+        statinfo: "MED_EI",
+      }),
+  },
+
   // --- confirmed working (real ONS data) ---
   { id: "hmt-cost-of-living", line: "cpi", min: -5, max: 30, get: () => ons(INFLATION, "D7G7", "mm23", "years") },
   { id: "hmt-psnd", min: 10, max: 130, get: () => ons(PUBFIN, "HF6X", "pusf", "years") },
