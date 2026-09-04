@@ -2810,6 +2810,17 @@ const SOURCES = [
     get: () => wb("GB.XPD.RSDV.GD.ZS", "EE"),
   },
 
+  // Households with broadband access — Eurostat isoc_r_broad_h. unit has two
+  // variants (PC_HH households vs PC_HH_IACC households with internet
+  // access at home) — pinned to PC_HH explicitly up front, learned from the
+  // hlth_hlye mistake earlier in this Этап.
+  {
+    id: "econ-broadband-penetration",
+    min: 20,
+    max: 100,
+    get: () => eurostat("isoc_r_broad_h", { geo: "EE", unit: "PC_HH" }),
+  },
+
   // --- confirmed working (real ONS data) ---
   { id: "hmt-cost-of-living", line: "cpi", min: -5, max: 30, get: () => ons(INFLATION, "D7G7", "mm23", "years") },
   { id: "hmt-psnd", min: 10, max: 130, get: () => ons(PUBFIN, "HF6X", "pusf", "years") },
