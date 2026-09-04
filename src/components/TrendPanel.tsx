@@ -748,10 +748,10 @@ export function TrendPanel({
             title={
               exactSrc
                 ? `Exact file fetched: ${exactSrc}`
-                : `Source: ${series.source}`
+                : `Source: ${series.producer}`
             }
           >
-            Source: {series.source}{exactSrc ? " ⤓" : ""} ↗
+            Source: {series.producer}{exactSrc ? " ⤓" : ""} ↗
           </a>
           {real && asOf && <span className="opacity-70">· fetched {asOf}</span>}
           {fingerprint && (
@@ -849,9 +849,9 @@ function UnsourcedPanel({
           target="_blank"
           rel="noopener noreferrer"
           className="underline decoration-dotted underline-offset-2 hover:text-foreground"
-          title={`Source being chased: ${series.source}`}
+          title={`Source being chased: ${series.producer}`}
         >
-          Source being chased: {series.source} ↗
+          Source being chased: {series.producer} ↗
         </a>
         <SourceFeedbackLink series={series} />
       </div>

@@ -55,8 +55,15 @@ export type TrendSeries = {
    *  cost, or spending efficiency/leakage). Shown with a "Value for money"
    *  badge so the pillar is explicit. */
   vfm?: boolean;
-  source: string;
+  /** Who officially publishes this data (an organisation name only — never a
+   *  description of what GovEesti did to it; that belongs in `compiler`). */
+  producer: string;
   sourceUrl: string;
+  /** What GovEesti did to the producer's data before charting it — even
+   *  "direct pass-through, no transformation" is stated explicitly, so a
+   *  reader never has to guess whether a number was recomputed. See
+   *  `methodology` for the detailed how, when one exists (derived series). */
+  compiler: string;
   cadence: "monthly" | "quarterly" | "annual";
   /** Primary line (single-line charts) or a representative line for tiles. */
   points: Point[];
@@ -191,8 +198,9 @@ export function ratioSeries(o: {
   // kind "standard" = an official/statutory benchmark; "reference" = a historical
   // baseline or marker (labelled honestly as such, not implied to be a target).
   target?: { value: number; label: string; kind?: "standard" | "reference" };
-  source: string;
+  producer: string;
   sourceUrl: string;
+  compiler?: string;
   scale?: number;
   round?: number;
   vfm?: boolean;
@@ -221,8 +229,9 @@ export function ratioSeries(o: {
     goodDirection: o.goodDirection,
     target: o.target,
     vfm: o.vfm,
-    source: o.source,
+    producer: o.producer,
     sourceUrl: o.sourceUrl,
+    compiler: o.compiler ?? `GovEesti — derived: computed as ${o.num.title} ÷ ${o.den.title}, aligned by year.`,
     cadence: o.num.cadence,
     points,
     derivedFrom: [o.num.id, o.den.id],
