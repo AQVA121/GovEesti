@@ -27,35 +27,35 @@ body:
     id: series_id
     attributes:
       label: Series id
-      description: The Govviz series id, if one exists.
-      placeholder: rtt-waiting-list
+      description: The GovEesti series id, if one exists.
+      placeholder: fin-debt-gdp
     validations:
       required: false
   - type: input
     id: record_url
     attributes:
-      label: Govviz record URL
-      placeholder: https://egly443.github.io/Govviz/data/series/example.json
+      label: GovEesti record URL
+      placeholder: https://aqva121.github.io/GovEesti/data/series/example.json
     validations:
       required: false
   - type: input
     id: source_url
     attributes:
       label: Official source URL
-      placeholder: https://www.gov.uk/...
+      placeholder: https://andmed.stat.ee/...
     validations:
       required: false
   - type: input
     id: latest_fetched
     attributes:
-      label: Latest fetched date shown by Govviz
+      label: Latest fetched date shown by GovEesti
       placeholder: "2026-07-02T10:30:00Z"
     validations:
       required: false
   - type: input
     id: observed_value
     attributes:
-      label: Observed Govviz value
+      label: Observed GovEesti value
       placeholder: "7423000"
     validations:
       required: false

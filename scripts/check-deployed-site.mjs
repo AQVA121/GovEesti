@@ -1,9 +1,14 @@
-// Verify the public GitHub Pages deployment serves the key app, essay, data
-// portal and machine-readable open-data URLs with useful content. Intended for
-// a short post-deploy retry loop, but also runnable locally:
-//   node scripts/check-deployed-site.mjs --base=https://egly443.github.io/Govviz
+// Verify the public GitHub Pages deployment serves the key app routes with
+// useful content. Intended for a short post-deploy retry loop, but also
+// runnable locally:
+//   node scripts/check-deployed-site.mjs --base=https://aqva121.github.io/GovEesti
+//
+// Trimmed during the Estonia fork (Этап 4, 2026-09-04): the UK original also
+// checked /blog and the full /data/* open-data endpoints — both removed along
+// with the DCAT/CSVW/MCP apparatus (BRIEF.md §3). Re-add data-endpoint checks
+// once the minimal open-data layer (BRIEF.md §7, Этап 8) exists.
 
-const DEFAULT_BASE = "https://egly443.github.io/Govviz";
+const DEFAULT_BASE = "https://aqva121.github.io/GovEesti";
 
 const args = new Map(
   process.argv
@@ -33,7 +38,7 @@ function hasAllowedType(actual, allowed) {
 async function get(path) {
   const res = await fetch(urlFor(path), {
     headers: {
-      "user-agent": "govviz-deploy-check/1.0",
+      "user-agent": "goveesti-deploy-check/1.0",
       accept: "*/*",
     },
   });
@@ -76,64 +81,13 @@ function assert(condition, message) {
 
 async function runOnce() {
   const checks = [
-    { path: "/", type: ["text/html"], includes: "Govviz" },
+    { path: "/", type: ["text/html"], includes: "GovEesti" },
     { path: "/overview", type: ["text/html"], includes: "Whole of government" },
-    { path: "/about", type: ["text/html"], includes: "How Govviz is built" },
-    { path: "/blog", type: ["text/html"], includes: "Agentic Open Data" },
-    { path: "/blog.md", type: ["text/markdown", "text/plain", "application/octet-stream"], includes: "Agentic Open Data" },
-    {
-      path: "/data/",
-      type: ["text/html"],
-      includes: "AI-ready open data",
-      excludes: '<div id="root"></div>',
-    },
-    {
-      path: "/data/catalog.json",
-      type: ["application/json", "application/ld+json", "text/plain"],
-      includes: "dcat:Catalog",
-      json: (data) => assert(Array.isArray(data["dcat:dataset"]) && data["dcat:dataset"].length > 0, "catalog has no datasets"),
-    },
-    {
-      path: "/data/series/index.json",
-      type: ["application/json", "text/plain"],
-      includes: '"series"',
-      json: (data) => assert(Array.isArray(data.series) && data.series.length > 0, "series index is empty"),
-    },
-    {
-      path: "/data/mcp.json",
-      type: ["application/json", "text/plain"],
-      includes: "list_series",
-      json: (data) => assert(Array.isArray(data.tools) && data.tools.some((tool) => tool.name === "list_series"), "MCP tool list missing list_series"),
-    },
+    { path: "/about", type: ["text/html"], includes: "How GovEesti is built" },
+    { path: "/soc", type: ["text/html"] },
   ];
 
   for (const check of checks) await checkEndpoint(check);
-
-  const index = await get("/data/series/index.json");
-  const series = JSON.parse(index.text).series?.find((item) => item?.id && item?.latest);
-  assert(series, "could not choose a series from /data/series/index.json");
-  const seriesBase = `/data/series/${series.id}`;
-
-  await checkEndpoint({
-    path: `${seriesBase}.json`,
-    type: ["application/json", "text/plain"],
-    includes: series.id,
-    json: (data) => {
-      assert(data.id && data.latest && data.csvw, "series record missing id/latest/csvw");
-      assert(Array.isArray(data.distribution) && data.distribution.length >= 3, "series distribution is incomplete");
-    },
-  });
-  await checkEndpoint({
-    path: `${seriesBase}/data.csv`,
-    type: ["text/csv", "text/plain", "application/octet-stream"],
-    includes: "period,value",
-  });
-  await checkEndpoint({
-    path: `${seriesBase}/data.csv-metadata.json`,
-    type: ["application/json", "text/plain"],
-    includes: "tableSchema",
-    json: (data) => assert(data.tableSchema?.columns?.length > 0, "CSVW metadata missing columns"),
-  });
 }
 
 let lastError;

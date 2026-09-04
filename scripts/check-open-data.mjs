@@ -1,16 +1,23 @@
-// Self-conformance gate. Validates the emitted AI-ready open-data product
-// (dist/data/) against the published profile schema and the profile's semantic
-// rules, and FAILS the build on any violation — so Govviz can never publish a
-// non-conformant "AI-ready" claim about its own data. This is the essay's
-// "release-assurance gate", turned on ourselves.
+// DISCONNECTED FROM THE BUILD as of the Estonia fork (Этап 4, BRIEF.md §1/§3,
+// 2026-09-04) — this script validates against docs/conformance/
+// ai-ready-series.schema.json and dist/data/catalog.json, both produced by
+// scripts/build-open-data.mjs, which was removed along with the rest of the
+// full DCAT/CSVW/MCP apparatus BRIEF.md §3 scoped out for v1. Neither its
+// input schema nor its upstream data producer exist right now, so it is not
+// invoked from package.json or CI — running it as-is will throw on a missing
+// file. Kept because the underlying idea (validRange guard, no
+// wrong-but-plausible value ships) is genuinely core to this project (see
+// CLAUDE.md's hard rule) — it needs a rewrite against whatever the "minimal
+// open-data layer" (BRIEF.md §7, Этап 8) actually emits, not a restoration of
+// this file's current heavy DCAT-conformance form.
 //
-// Checks, per series record:
+// Original checks, per series record (for reference when rewriting):
 //   1. validates against docs/conformance/ai-ready-series.schema.json
 //   2. the data file exists, is long-format, and parses
 //   3. every observation value lies within validRange (when published) — the
 //      safety property: a wrong-but-plausible value cannot ship
 //   4. latest/csvw/distribution targets resolve to emitted files
-// Plus catalogue completeness. Run after build-open-data.mjs.
+// Plus catalogue completeness. Ran after build-open-data.mjs.
 
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";

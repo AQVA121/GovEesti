@@ -1,8 +1,8 @@
-// Post-build SEO prerender for the 17 department routes.
+// Post-build SEO prerender for the ministry (department) routes.
 //
 // The SPA serves only a JS shell to a non-browser client, and GitHub Pages
-// deep-links fall back to 404.html — so a direct fetch of /Govviz/dhsc (a
-// crawler, an AI search bot, a no-JS reader) sees no department content. This
+// deep-links fall back to 404.html — so a direct fetch of /GovEesti/soc (a
+// crawler, an AI search bot, a no-JS reader) sees no ministry content. This
 // derives a static page per department FROM the built dist/index.html, so the
 // same hashed bundle still hydrates the full interactive app for humans, while
 // machines get:
@@ -21,7 +21,7 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { build } from "esbuild";
 
-const SITE = "https://egly443.github.io/Govviz";
+const SITE = "https://aqva121.github.io/GovEesti";
 const MODIFIED = new Date().toISOString().slice(0, 10);
 
 const esc = (s = "") =>
@@ -42,7 +42,7 @@ try {
     write: false,
     logLevel: "silent",
   });
-  const tmp = join(tmpdir(), `govviz-departments-${process.pid}.mjs`);
+  const tmp = join(tmpdir(), `goveesti-departments-${process.pid}.mjs`);
   await writeFile(tmp, out.outputFiles[0].text, "utf8");
   const mod = await import(pathToFileURL(tmp).href);
   departments = mod.departments;
@@ -72,7 +72,7 @@ function seriesOf(d) {
 function pageFor(d) {
   const url = `${SITE}/${d.code}`;
   const heading = d.pageTitle ?? `Department for ${d.fullName}`;
-  const title = `${heading} — Govviz`;
+  const title = `${heading} — GovEesti`;
   const description = d.blurb.replace(/\s+/g, " ").trim().slice(0, 300);
   const series = seriesOf(d);
 
@@ -80,15 +80,15 @@ function pageFor(d) {
     {
       "@context": "https://schema.org",
       "@type": "Dataset",
-      name: `${d.fullName} — UK government performance indicators`,
+      name: `${d.fullName} — Estonian government performance indicators`,
       description,
       url,
-      inLanguage: "en-GB",
+      inLanguage: "en",
       isAccessibleForFree: true,
       dateModified: MODIFIED,
-      keywords: [d.fullName, "UK government performance", ...d.themes].join(", "),
-      creator: { "@type": "Organization", name: "Govviz", url: SITE },
-      spatialCoverage: { "@type": "Place", name: "United Kingdom" },
+      keywords: [d.fullName, "Estonian government performance", ...d.themes].join(", "),
+      creator: { "@type": "Organization", name: "GovEesti", url: SITE },
+      spatialCoverage: { "@type": "Place", name: "Estonia" },
       variableMeasured: series.map((s) => ({
         "@type": "PropertyValue",
         name: s.title,
@@ -101,7 +101,7 @@ function pageFor(d) {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Govviz", item: SITE },
+        { "@type": "ListItem", position: 1, name: "GovEesti", item: SITE },
         { "@type": "ListItem", position: 2, name: "Overview", item: `${SITE}/overview` },
         { "@type": "ListItem", position: 3, name: d.fullName, item: url },
       ],
@@ -111,10 +111,10 @@ function pageFor(d) {
   // Static content for no-JS clients; the SPA wipes #root and renders the real
   // app on mount, so humans never see this.
   const staticBody = `<main style="max-width:60rem;margin:0 auto;padding:2rem 1.25rem;font:16px/1.6 Inter,system-ui,sans-serif">
-<nav style="font-size:.8rem;color:#9aa3b2"><a href="${SITE}/overview" style="color:#9aa3b2">Govviz</a> / ${esc(d.fullName)}</nav>
+<nav style="font-size:.8rem;color:#9aa3b2"><a href="${SITE}/overview" style="color:#9aa3b2">GovEesti</a> / ${esc(d.fullName)}</nav>
 <h1 style="font-size:1.9rem;font-weight:600;margin:.5rem 0">${esc(heading)}</h1>
 <p style="color:#9aa3b2">${esc(d.blurb)}</p>
-<p style="color:#9aa3b2;font-size:.85rem">Approximate ${esc(SPEND_BASIS?.measure ?? "Total Managed Expenditure")}: £${d.spendBn}bn (${esc(SPEND_BASIS?.source ?? "HM Treasury")}, ${esc(SPEND_BASIS?.asOf ?? "")}).</p>
+<p style="color:#9aa3b2;font-size:.85rem">Treemap tile size basis: ${esc(SPEND_BASIS?.measure ?? "not yet sourced")} (${esc(SPEND_BASIS?.source ?? "not yet sourced")}).</p>
 <h2 style="font-size:1.1rem;font-weight:600;margin:1.5rem 0 .5rem">Tracked indicators</h2>
 <ul>
 ${series

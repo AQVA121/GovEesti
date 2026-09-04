@@ -42,7 +42,7 @@ globalThis.fetch = async (...args) => {
 // Shared fetch options: identify ourselves (some gov APIs throttle anonymous
 // bots) and bound every request so a hung server can't stall the CI job.
 const fetchOpts = (headers) => ({
-  headers: { "user-agent": "Govviz data fetcher (github.com/Egly443/Govviz)", ...headers },
+  headers: { "user-agent": "GovEesti data fetcher (github.com/AQVA121/GovEesti)", ...headers },
   signal: AbortSignal.timeout(30_000),
 });
 

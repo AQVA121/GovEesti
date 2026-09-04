@@ -5,7 +5,7 @@
 
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 
-const SITE = "https://egly443.github.io/Govviz";
+const SITE = "https://aqva121.github.io/GovEesti";
 const MODIFIED = new Date().toISOString().slice(0, 10);
 
 const esc = (s = "") =>
@@ -84,106 +84,65 @@ const muted = "color:#9aa3b2";
 const link = "color:#8ab4ff";
 
 const overviewDescription =
-  "Whole-of-government view of long-run UK department performance indicators, with direct links to the AI-ready open-data catalogue and essay.";
+  "Whole-of-government view of long-run Estonian ministry performance indicators.";
 const overviewJsonld = [
   {
     "@context": "https://schema.org",
     "@type": "Dataset",
-    name: "Govviz whole-of-government performance overview",
+    name: "GovEesti whole-of-government performance overview",
     description: overviewDescription,
     url: `${SITE}/overview`,
-    inLanguage: "en-GB",
+    inLanguage: "en",
     isAccessibleForFree: true,
     dateModified: MODIFIED,
-    creator: { "@type": "Organization", name: "Govviz", url: SITE },
-    spatialCoverage: { "@type": "Place", name: "United Kingdom" },
-    distribution: [
-      { "@type": "DataDownload", contentUrl: `${SITE}/data/catalog.json`, encodingFormat: "application/ld+json" },
-      { "@type": "DataDownload", contentUrl: `${SITE}/data/series/index.json`, encodingFormat: "application/json" },
-    ],
+    creator: { "@type": "Organization", name: "GovEesti", url: SITE },
+    spatialCoverage: { "@type": "Place", name: "Estonia" },
   },
   {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: "Whole of government",
     url: `${SITE}/overview`,
-    isPartOf: { "@type": "WebSite", name: "Govviz", url: SITE },
+    isPartOf: { "@type": "WebSite", name: "GovEesti", url: SITE },
   },
 ];
 const overviewBody = `<main style="${staticCss}">
-<nav style="font-size:.8rem;${muted}"><a href="${SITE}/" style="${link}">Govviz</a> / Whole of government</nav>
+<nav style="font-size:.8rem;${muted}"><a href="${SITE}/" style="${link}">GovEesti</a> / Whole of government</nav>
 <h1 style="font-size:2rem;font-weight:650;margin:.5rem 0">Whole of government</h1>
-<p style="${muted};max-width:46rem">Every tracked indicator at a glance. Govviz groups long-run UK government performance measures by department, scores them against published targets where available, and marks stale or uncertain evidence instead of hiding it.</p>
-<section>
-  <h2 style="font-size:1.15rem;margin:1.6rem 0 .4rem">Open evidence behind the dashboard</h2>
-  <p style="${muted};max-width:46rem">The interactive treemap requires JavaScript, but the underlying evidence is static and machine-readable. Use the <a href="${SITE}/data/catalog.json" style="${link}">DCAT catalogue</a>, the <a href="${SITE}/data/series/index.json" style="${link}">series index</a>, the <a href="${SITE}/blog" style="${link}">agentic open data essay</a>, or the <a href="https://github.com/Egly443/Govviz" style="${link}">source repository</a>.</p>
-  <ul>
-    <li><a href="${SITE}/data/" style="${link}">Static data portal</a></li>
-    <li><a href="${SITE}/data/catalog.json" style="${link}">/data/catalog.json</a></li>
-    <li><a href="${SITE}/data/series/index.json" style="${link}">/data/series/index.json</a></li>
-    <li><a href="${SITE}/data/mcp.json" style="${link}">/data/mcp.json</a></li>
-  </ul>
-</section>
-<p style="font-size:.85rem;${muted}">Interactive charts, modals and drill-down routes hydrate from this same page shell when JavaScript is available.</p>
+<p style="${muted};max-width:46rem">Every tracked indicator at a glance. GovEesti groups long-run Estonian ministry performance measures by ministry, scores them against published targets where available, and marks stale or uncertain evidence instead of hiding it.</p>
+<p style="font-size:.85rem;${muted}">Interactive charts, modals and drill-down routes hydrate from this same page shell when JavaScript is available. Source: <a href="https://github.com/AQVA121/GovEesti" style="${link}">github.com/AQVA121/GovEesti</a>.</p>
 </main>`;
 
 const aboutDescription =
-  "How Govviz sources, validates and republishes UK government performance data as AI-ready open data.";
+  "How GovEesti sources, validates and presents Estonian government performance data.";
 const aboutJsonld = [
   {
     "@context": "https://schema.org",
     "@type": "TechArticle",
-    headline: "How Govviz is built",
-    name: "How Govviz is built",
+    headline: "How GovEesti is built",
+    name: "How GovEesti is built",
     description: aboutDescription,
     url: `${SITE}/about`,
-    inLanguage: "en-GB",
+    inLanguage: "en",
     dateModified: MODIFIED,
-    author: { "@type": "Organization", name: "Govviz", url: SITE },
-    about: ["AI-ready data", "Open data", "UK government statistics", "CSVW", "Model Context Protocol"].map((name) => ({
+    author: { "@type": "Organization", name: "GovEesti", url: SITE },
+    about: ["Open data", "Estonian government statistics"].map((name) => ({
       "@type": "Thing",
       name,
     })),
   },
-  {
-    "@context": "https://schema.org",
-    "@type": "Dataset",
-    name: "Govviz AI-ready open data",
-    description: "Stable JSON records, tidy CSV, CSVW metadata, DCAT catalogue and MCP descriptor for Govviz performance indicators.",
-    url: `${SITE}/data/`,
-    distribution: [
-      { "@type": "DataDownload", contentUrl: `${SITE}/data/catalog.json`, encodingFormat: "application/ld+json" },
-      { "@type": "DataDownload", contentUrl: `${SITE}/data/series/index.json`, encodingFormat: "application/json" },
-      { "@type": "DataDownload", contentUrl: `${SITE}/data/profile.json`, encodingFormat: "application/json" },
-      { "@type": "DataDownload", contentUrl: `${SITE}/data/mcp.json`, encodingFormat: "application/json" },
-    ],
-  },
 ];
 const aboutBody = `<main style="${staticCss}">
-<nav style="font-size:.8rem;${muted}"><a href="${SITE}/" style="${link}">Govviz</a> / About</nav>
-<h1 style="font-size:2rem;font-weight:650;margin:.5rem 0">How Govviz is built</h1>
-<p style="${muted};max-width:46rem">Govviz is a static dashboard of long-run UK government performance indicators. Its production build is designed around real official data, visible provenance, guard-range validation and explicit freshness limits.</p>
+<nav style="font-size:.8rem;${muted}"><a href="${SITE}/" style="${link}">GovEesti</a> / About</nav>
+<h1 style="font-size:2rem;font-weight:650;margin:.5rem 0">How GovEesti is built</h1>
+<p style="${muted};max-width:46rem">GovEesti is a static dashboard of long-run Estonian government performance indicators, forked from <a href="https://github.com/Egly443/Govviz" style="${link}">Govviz</a> (UK). Its production build is designed around real official data, visible provenance, guard-range validation and explicit freshness limits.</p>
 <section>
   <h2 style="font-size:1.15rem;margin:1.6rem 0 .4rem">Methodology in brief</h2>
   <ul>
-    <li>Every charted series is fetched from a public source such as ONS, NHS England, gov.uk, DfE or the World Bank.</li>
+    <li>Every charted series is fetched from a public source such as Statistikaamet, Eurostat, TAI or the World Bank.</li>
     <li>Each series records provenance, coverage, measurement basis, caveats and the source file used by the build.</li>
     <li>Guard ranges reject wrong-but-plausible values before they can ship.</li>
     <li>Stale or missing evidence is labelled instead of replaced with invented data.</li>
-  </ul>
-</section>
-<section>
-  <h2 style="font-size:1.15rem;margin:1.6rem 0 .4rem">AI-ready publication</h2>
-  <p style="${muted};max-width:46rem">Govviz republishes each indicator as a stable JSON record pointing at tidy long-format CSV, CSVW schema metadata, a DCAT catalogue and an open MCP descriptor.</p>
-  <ul>
-    <li><a href="${SITE}/data/" style="${link}">Human data portal</a></li>
-    <li><a href="${SITE}/data/catalog.json" style="${link}">JSON-LD/DCAT catalogue</a></li>
-    <li><a href="${SITE}/data/series/waiting-list.json" style="${link}">Example series JSON</a></li>
-    <li><a href="${SITE}/data/series/waiting-list/data.csv" style="${link}">Example tidy CSV</a></li>
-    <li><a href="${SITE}/data/series/waiting-list/data.csv-metadata.json" style="${link}">Example CSVW metadata</a></li>
-    <li><a href="${SITE}/data/profile.json" style="${link}">AI-ready series profile</a></li>
-    <li><a href="${SITE}/data/mcp.json" style="${link}">MCP descriptor</a></li>
-    <li><a href="https://github.com/Egly443/Govviz/blob/main/docs/conformance/test-cases.json" style="${link}">Conformance test cases</a></li>
   </ul>
 </section>
 <p style="font-size:.85rem;${muted}">This static page hydrates into the full React route for browsers with JavaScript enabled.</p>
@@ -194,7 +153,7 @@ const pages = [
     dir: "dist/overview",
     html: page({
       route: "overview",
-      title: "Whole of government - Govviz",
+      title: "Whole of government - GovEesti",
       description: overviewDescription,
       canonical: `${SITE}/overview`,
       jsonld: overviewJsonld,
@@ -205,7 +164,7 @@ const pages = [
     dir: "dist/about",
     html: page({
       route: "about",
-      title: "How Govviz is built - Govviz",
+      title: "How GovEesti is built - GovEesti",
       description: aboutDescription,
       canonical: `${SITE}/about`,
       jsonld: aboutJsonld,
