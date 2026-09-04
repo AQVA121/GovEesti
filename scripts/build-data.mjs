@@ -2548,6 +2548,45 @@ const SOURCES = [
     },
   },
 
+  // Pupil:teacher ratio, general education — DERIVED: Statistikaamet HT121
+  // (stationary general-education enrolments, level=ED_GEN_STAT_T) divided
+  // by HT235 (teachers, Vanuserühm=1 total, Sugu=1 total). HT235 sits under
+  // a "Lepetatud_tabelid/...Arhiiv" (archive) path but is still updated
+  // through the latest year — the folder name is not a liveness signal, see
+  // docs/INDICATORS-ee.md. Statistikaamet does not publish this ratio
+  // directly.
+  {
+    id: "edu-pupil-teacher-ratio",
+    min: 5,
+    max: 20,
+    get: async () => {
+      const HT121_URL = "https://andmed.stat.ee/api/v1/en/stat/sotsiaalelu/haridus/uldharidus/HT121.px";
+      const enrolments = await pxweb(HT121_URL, [
+        { code: "Õppetase / õppeasutuse tüüp", selection: { filter: "item", values: ["ED_GEN_STAT_T"] } },
+        { code: "Vaatlusperiood", selection: { filter: "all", values: ["*"] } },
+      ]);
+      const teachers = await pxweb(
+        "https://andmed.stat.ee/api/v1/en/stat/Lepetatud_tabelid/Sotsiaalelu.%20Arhiiv/Haridus.%20Arhiiv/HT235.PX",
+        [
+          { code: "Vanuserühm", selection: { filter: "item", values: ["1"] } },
+          { code: "Sugu", selection: { filter: "item", values: ["1"] } },
+          { code: "Aasta", selection: { filter: "all", values: ["*"] } },
+        ],
+      );
+      const teachersByYear = new Map(teachers.map((p) => [p.date.slice(0, 4), p.value]));
+      const points = enrolments
+        .map((p) => {
+          const t = teachersByYear.get(p.date.slice(0, 4));
+          return t ? { date: p.date, value: +(p.value / t).toFixed(2) } : null;
+        })
+        .filter((p) => p != null);
+      if (!points.length)
+        throw new Error("edu-pupil-teacher-ratio: no overlapping years between HT121 and HT235");
+      setSrc(HT121_URL);
+      return points;
+    },
+  },
+
   // --- confirmed working (real ONS data) ---
   { id: "hmt-cost-of-living", line: "cpi", min: -5, max: 30, get: () => ons(INFLATION, "D7G7", "mm23", "years") },
   { id: "hmt-psnd", min: 10, max: 130, get: () => ons(PUBFIN, "HF6X", "pusf", "years") },
