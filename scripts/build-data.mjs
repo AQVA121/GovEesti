@@ -2709,6 +2709,22 @@ const SOURCES = [
     get: () => wb("GC.TAX.TOTL.GD.ZS", "EE"),
   },
 
+  // Real GDP per capita, chain-linked volume (reference year 2020) —
+  // Statistikaamet RAA0013, Näitaja=2.
+  {
+    id: "fin-gdp-per-capita",
+    min: 5000,
+    max: 30000,
+    get: () =>
+      pxweb(
+        "https://andmed.stat.ee/api/v1/en/stat/majandus/rahvamajanduse-arvepidamine/sisemajanduse-koguprodukt-(skp)/pehilised-rahvamajanduse-arvepidamise-naitajad/RAA0013.PX",
+        [
+          { code: "Näitaja", selection: { filter: "item", values: ["2"] } },
+          { code: "Aasta", selection: { filter: "all", values: ["*"] } },
+        ],
+      ),
+  },
+
   // --- confirmed working (real ONS data) ---
   { id: "hmt-cost-of-living", line: "cpi", min: -5, max: 30, get: () => ons(INFLATION, "D7G7", "mm23", "years") },
   { id: "hmt-psnd", min: 10, max: 130, get: () => ons(PUBFIN, "HF6X", "pusf", "years") },
