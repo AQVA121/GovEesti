@@ -147,13 +147,20 @@ neighbouring rows and are noted where that happened.
 ## Kaitseministeerium (def) — Defence
 
 - Defence spending, % of GDP — World Bank `MS.MIL.XPND.GD.ZS` — **VFM /
-  context** 🟢 ✅ (confirmed live: WB series shows 2.87% in 2023, later
-  NATO-reported figures put 2025 around 3.4–5.1% depending on definition/
-  source — reuse the exact same World Bank fetch pattern already in
-  `build-data.mjs`, just target `EE`)
-- Military personnel, per capita — World Bank `MS.MIL.TOTL.P1` — **context**
-  🟢 ✅ (standard WB indicator, same helper, high confidence though not
-  explicitly searched this session)
+  context** 🟢 ✅ (live-verified 2026-09-04, correcting the first pass: the
+  real fetched value for 2024 is **3.37%**, not the 2.87% (2023) figure
+  cited earlier — that number was a stale/rounded press citation, not a
+  pulled value. Reuse the exact same World Bank fetch pattern already in
+  `build-data.mjs`, just target `EE`.)
+- Military personnel, per 1,000 population — World Bank `MS.MIL.TOTL.P1`
+  ÷ `SP.POP.TOTL` — **context** 🟢 ✅ (live-verified 2026-09-04, correcting
+  the first pass: **`MS.MIL.TOTL.P1` is total active personnel, an
+  absolute headcount — there is no World Bank per-capita military
+  series** — the first pass mislabelled it. Must be computed:
+  headcount ÷ population × 1,000, a **derived** indicator, not a direct
+  pass-through. Also: WB's headcount series was last updated for **2020**
+  in this session's fetch (7,000 personnel) — a real freshness risk to
+  flag for Этап 5, not treated as current.)
 - Public opinion on national defence — Kaitseministeerium annual survey
   (Kantar Emor, "Avalik arvamus riigikaitsest") — **O** 🔴 (PDF report only,
   confirmed this session — same shape as the UK AFCAS survey, but no open
@@ -273,3 +280,362 @@ probing. Two real fallback series turned up as a byproduct of probing
 (`RR056` codes 18 and 21 = police-services and prisons *spending*, COFOG) —
 not committed rows, but available if the headcount/population rows stay
 blocked into Этап 3.
+
+---
+
+# Этап 3 — Full indicator specification
+
+Per BRIEF.md §6, every field below is filled in for the 19 ✅ rows only
+(🔴/❓ rows are not specced — they're not promised for v1). `validRange`
+follows this codebase's own convention in `scripts/build-data.mjs`
+(`SOURCES` array, `min`/`max` fields): a **generous sanity bound**, not a
+tight statistical one — its job is to catch a fetcher bug (wrong unit,
+wrong country, a decimal-point slip), not to flag genuine year-to-year
+movement. Every bound below is derived from a real value range **fetched
+live this session** (noted per row as "observed"), then padded — never an
+invented number. `unit` values use this codebase's existing `SeriesUnit`
+type (`percent`, `years`, `beds`, `count`, `people`, `currency`); none of
+the 19 rows need a new unit added to that type.
+
+**Licence confidence:** per-source licence text is confirmed to the level
+noted per row — some (Eurostat, World Bank) have an unambiguous, named,
+webpage-documented licence; others (Statistikaamet, TAI, the Justice
+portal) are backed only by a search result or a plain-language "free to
+use, please cite us" statement, not a page this session could read the
+licence text directly off. **BRIEF.md §10 (Этап 10) is where the full
+per-source licence audit happens** — treat every licence line below as a
+strong working assumption for Этап 4/5 build purposes, not the final
+audited word.
+
+## Sotsiaalministeerium (soc)
+
+```
+id: soc-poverty-rate
+title: At-risk-of-poverty rate (60% of median equivalised income)
+unit: percent · cadence: annual · coverage: Estonia
+source: Eurostat ilc_li02 (age=TOTAL, sex=T, unit=PC, rskpovth=B_60, statinfo=MED_EI)
+sourceUrl: https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/ilc_li02?format=JSON&geo=EE&sex=T&age=TOTAL&unit=PC&rskpovth=B_60&statinfo=MED_EI&lang=EN
+producer: Eurostat (EU-SILC; Estonian microdata collected by Statistikaamet)
+compiler: GovEesti — direct pass-through, no transformation
+licence: CC BY 4.0 (Eurostat reuse policy — webpage-confirmed)
+validRange: { min: 5, max: 35 }   // observed 2000–2025: 15.8–22.8%
+revisionStatus: EU-SILC typically provisional then revised ~T+1 — treat the latest year as provisional
+note: the original draft mentioned an age-group split (children ⇄ pensioners); this
+  session confirmed only the TOTAL-population series — the age-split query (age=Y_LT18
+  vs Y_GE65) is a separate, not-yet-confirmed fetch for Этап 5
+```
+
+```
+id: soc-life-expectancy
+title: Life expectancy at birth ⇄ Healthy life years at birth (paired)
+unit: years · cadence: annual · coverage: Estonia
+lines:
+  - life-expectancy: Eurostat demo_mlexpec (age=Y_LT1, sex=T)
+    sourceUrl: https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/demo_mlexpec?format=JSON&geo=EE&sex=T&age=Y_LT1&lang=EN
+    observed 1960–2024: 66.6–79.4 years (dip in 1994, post-Soviet mortality crisis)
+  - healthy-life-years: Eurostat hlth_hlye (hlth_hle=HLY_Y0, sex=T)
+    sourceUrl: https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/hlth_hlye?format=JSON&geo=EE&sex=T&hlth_hle=HLY_Y0&lang=EN
+    observed 2004–2024: 50.4–59.3 years
+producer: Eurostat
+compiler: GovEesti — direct pass-through, no transformation
+licence: CC BY 4.0 (Eurostat)
+validRange: { min: 30, max: 90 }   // wide enough to cover both lines' real bands
+revisionStatus: final (Eurostat demography/health tables are not routinely revised after publication)
+```
+
+```
+id: soc-hospital-beds
+title: Hospital beds (national total, annual average)
+unit: beds · cadence: annual · coverage: Estonia
+source: TAI (Tervise Arengu Instituut) PxWeb, table HH08 (Näitaja=0, Ravivoodi liik=0, Haigla nimi=0 = national total)
+sourceUrl: https://statistika.tai.ee/api/v1/en/Andmebaas/04THressursid/11HAHaiglad/HH08.px
+producer: Tervise Arengu Instituut (TAI)
+compiler: GovEesti — direct pass-through, no transformation
+licence: no formally named open licence found on TAI's own terms page — it states
+  "database use is free of charge; please cite the source" (a plain attribution
+  request, not a badge like CC BY). Flag for a named-licence check at Этап 10.
+validRange: { min: 4500, max: 7500 }   // observed 2003–2024: 5,519.5–6,789.8, declining trend
+revisionStatus: final (annual averages, not typically revised)
+```
+
+```
+id: soc-health-spend-per-capita
+title: General government health expenditure per capita (VFM)
+unit: currency (EUR) · cadence: annual · coverage: Estonia
+source: Statistikaamet RR056 (Sektor=1 "S.13 General government", Valitsemisfunktsioon=48
+  "07 Health", Näitaja=12 "Total expenditure") ÷ population (World Bank SP.POP.TOTL or
+  Statistikaamet's own population count)
+sourceUrl: https://andmed.stat.ee/api/v1/en/stat/majandus/rahandus/valitsemissektori-rahandus/valitsemissektori-tulud-kulud/RR056.PX
+producer: Statistikaamet (COFOG government expenditure); population denominator also Statistikaamet
+compiler: GovEesti — DERIVED: divides total EUR-million health expenditure by mid-year
+  population; Statistikaamet does not publish a ready per-capita health-spend series
+licence: CC BY-SA 4.0 (Statistikaamet — search-confirmed, not read directly off a
+  primary-source licence page this session; confirm at Этап 10)
+validRange: { min: 500, max: 3000 }   // EUR/person; observed total spend 2015–2024:
+  €1,171.3M → €2,520.6M over a ~1.31–1.37M population ⇒ roughly €895–1,840/capita
+revisionStatus: provisional latest year, revised T+1/T+2 (consolidated government finance statistics convention)
+```
+
+## Haridus- ja Teadusministeerium (edu)
+
+```
+id: edu-pupil-teacher-ratio
+title: Pupil:teacher ratio, general education
+unit: count (pupils per teacher) · cadence: annual · coverage: Estonia
+derivedFrom: [edu-enrolment (HT121), edu-teachers (HT235)]
+source: Statistikaamet HT121 (stationary general-education enrolments, level=ED_GEN_STAT_T)
+  ÷ HT235 (teachers of general education, age group=total "1", sex=total "1")
+sourceUrl HT121: https://andmed.stat.ee/api/v1/en/stat/sotsiaalelu/haridus/uldharidus/HT121.px
+sourceUrl HT235: https://andmed.stat.ee/api/v1/en/stat/Lepetatud_tabelid/Sotsiaalelu.%20Arhiiv/Haridus.%20Arhiiv/HT235.PX
+producer: Statistikaamet (both tables)
+compiler: GovEesti — DERIVED ratio (enrolments ÷ teachers); Statistikaamet does not
+  publish this ratio as a single series
+licence: CC BY-SA 4.0 (Statistikaamet)
+validRange: { min: 5, max: 20 }   // pupils/teacher; 2024 = 9.4; enrolments observed
+  134,975–217,577 (HT121 full history), teachers observed 14,203–17,483 (HT235, 2012–2023)
+revisionStatus: final
+```
+
+```
+id: edu-pisa
+title: PISA reading / maths / science scores, Estonia
+unit: count (0–1000 scale) · cadence: triennial (latest full cycle 2022)
+source: OECD PISA
+sourceUrl: NOT re-confirmed live this session — several guessed OECD SDMX dataflow IDs
+  (DF_PISA and variants) returned 404 or an oversized/undecodable dump; the exact
+  dataflow needs to be found via OECD Data Explorer at Этап 5, not assumed from this probe
+producer: OECD
+compiler: GovEesti — direct pass-through, no transformation
+licence: not confirmed this session — OECD's data-reuse terms were not read directly;
+  flag for Этап 10
+validRange: { min: 300, max: 600 }   // 0–1000 PISA scale; wide sanity bound only
+revisionStatus: final (each triennial release is final, no revisions)
+⚠️ CAVEAT: unlike the other 18 rows, this one's "real source exists" confirmation
+  carries over from the FIRST (search-only) session and was not independently
+  re-verified with a live fetch this session. Do not treat the 2019-cited ~520–535
+  Estonia score as fetched data — it wasn't pulled this session. One more live probe
+  needed before Этап 5 codes this row.
+```
+
+## Siseministeerium (int)
+
+```
+id: int-recorded-crimes
+title: Recorded crimes, total
+unit: count · cadence: annual (source page also breaks out by offence type) · coverage: Estonia
+source: Justiits- ja Digiministeerium statistics portal — CSV linked from the
+  crime-statistics page, not a queryable API
+sourceUrl (page to scrape for the current href): https://statistika.justdigi.ee/en/crime-statistics
+sourceUrl (file confirmed live 2026-09-04, path WILL move on republish):
+  https://statistika.justdigi.ee/sites/default/files/2026-02/Kuriteod%20kokku_masskuriteod_eng.csv
+producer: Justiits- ja Digiministeerium (Ministry of Justice and Digital Affairs)
+compiler: GovEesti — parses the "Total" row per year out of the CSV
+licence: no explicit licence badge found on the portal this session; Estonian
+  public-sector sites generally default to open reuse, but this wasn't read off a
+  primary licence page — flag for Этап 10
+validRange: { min: 15000, max: 40000 }   // observed 2019–2025: 25,663–28,345 total annual crimes
+revisionStatus: provisional for the current (in-progress) year, final for closed years
+⚠️ CAVEAT: the fetcher MUST scrape the current CSV href off the crime-statistics page
+  at each run — the `/2026-02/...` path is date-stamped and shifts when Justice
+  re-publishes the file. Hardcoding this URL will silently break within months.
+```
+
+## Rahandusministeerium (fin)
+
+```
+id: fin-debt-gdp / fin-deficit-gdp   (paired, one source table, two lines — same
+  treatment as the codebase's existing wbCompare() pattern)
+title: General government debt ⇄ deficit/surplus, % of GDP
+unit: percent · cadence: annual · coverage: Estonia
+source: Statistikaamet RR061 (Näitaja=2 = debt %, Näitaja=4 = deficit/surplus %)
+sourceUrl: https://andmed.stat.ee/api/v1/en/stat/majandus/rahandus/valitsemissektori-rahandus/valitsemissektori-tulud-kulud/RR061.px
+producer: Statistikaamet
+compiler: GovEesti — direct pass-through, two lines from one table
+licence: CC BY-SA 4.0 (Statistikaamet)
+validRange debt: { min: 0, max: 40 }      // observed 2007–2025: 3.9–24.1%
+validRange deficit: { min: -10, max: 5 }  // observed: -5.4% (2020) to +2.8% (2006)
+revisionStatus: provisional latest year, revised T+1
+```
+
+```
+id: fin-tax-burden
+title: Tax burden, % of GDP
+unit: percent · cadence: annual · coverage: Estonia
+source: World Bank GC.TAX.TOTL.GD.ZS
+sourceUrl: https://api.worldbank.org/v2/country/EE/indicator/GC.TAX.TOTL.GD.ZS?format=json
+producer: World Bank (compiled from IMF/national sources)
+compiler: GovEesti — direct pass-through, no transformation
+licence: CC BY 4.0 (World Bank Open Data — well-documented, high confidence)
+validRange: { min: 10, max: 30 }   // observed 1992–2024: 12.5–22.8%, latest (2024) 22.7%
+revisionStatus: final (World Bank backfills rather than flagging provisional/final)
+```
+
+```
+id: fin-gdp-per-capita
+title: Real GDP per capita (chain-linked volume, reference year 2020)
+unit: currency (EUR) · cadence: annual · coverage: Estonia
+source: Statistikaamet RAA0013 (Näitaja=2 = "GDP chain-linked volume per capita")
+sourceUrl: https://andmed.stat.ee/api/v1/en/stat/majandus/rahvamajanduse-arvepidamine/sisemajanduse-koguprodukt-(skp)/pehilised-rahvamajanduse-arvepidamise-naitajad/RAA0013.PX
+producer: Statistikaamet
+compiler: GovEesti — direct pass-through, no transformation
+licence: CC BY-SA 4.0 (Statistikaamet)
+validRange: { min: 5000, max: 30000 }   // observed 1995–2025: €7,533.1–€22,804.2/capita
+revisionStatus: provisional latest year, revised over the following ~2 years (national accounts convention)
+```
+
+## Kliimaministeerium (clim)
+
+```
+id: clim-renewable-share
+title: Renewable energy share of gross final consumption
+unit: percent · cadence: annual · coverage: Estonia
+source: Eurostat nrg_ind_ren (nrg_bal=REN)
+sourceUrl: https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_ind_ren?format=JSON&geo=EE&nrg_bal=REN&lang=EN
+producer: Eurostat
+compiler: GovEesti — direct pass-through, no transformation
+licence: CC BY 4.0 (Eurostat)
+validRange: { min: 5, max: 55 }   // observed 2004–2025: 16.0–42.3%, strong upward trend
+revisionStatus: final
+```
+
+```
+id: clim-ghg-emissions
+title: Greenhouse gas emissions, total (excl. memo items)
+unit: count (thousand tonnes CO2-eq) · cadence: annual · coverage: Estonia
+source: Eurostat env_air_gge (airpol=GHG, unit=THS_T, src_crf=TOTXMEMO)
+sourceUrl: https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_air_gge?format=JSON&geo=EE&airpol=GHG&unit=THS_T&src_crf=TOTXMEMO&lang=EN
+producer: Eurostat (compiled from Estonia's UNFCCC national inventory report)
+compiler: GovEesti — direct pass-through, no transformation
+licence: CC BY 4.0 (Eurostat)
+validRange: { min: 8000, max: 40000 }   // observed 1990–2024: 12,068.3–36,299.12 kt CO2-eq.
+  The 1990 figure is a real Soviet-era oil-shale peak, kept as the ceiling deliberately —
+  it's a genuine historical extreme, not representative of the modern baseline, but a
+  useful sanity ceiling rather than a tight bound.
+revisionStatus: provisional latest 1–2 years, revised as the national inventory report is finalised
+```
+
+```
+id: clim-road-deaths
+title: Road deaths (persons killed in traffic accidents)
+unit: people · cadence: annual (source also publishes monthly) · coverage: Estonia
+source: Statistikaamet TS093 (Näitaja=5 "Persons killed", Kuu=00 = annual total)
+sourceUrl: https://andmed.stat.ee/api/v1/en/stat/majandus/transport/liiklusennetused/TS093.PX
+producer: Statistikaamet
+compiler: GovEesti — direct pass-through, no transformation
+licence: CC BY-SA 4.0 (Statistikaamet)
+validRange: { min: 30, max: 150 }   // observed full history 1990–2024: 48–491. The
+  1990s figures (up to 491) reflect a real post-Soviet traffic-safety crisis, not the
+  modern baseline (recent decade: 48–69) — the guard bound is set around the modern
+  band with generous padding rather than the historical extreme, so it stays useful
+  for catching a real data error instead of silently admitting anything short of a
+  five-fold spike.
+revisionStatus: final
+```
+
+## Majandus- ja Kommunikatsiooniministeerium (econ)
+
+```
+id: econ-unemployment-rate
+title: Unemployment rate (15–74), quarterly
+unit: percent · cadence: quarterly · coverage: Estonia
+source: Statistikaamet TT3300 (Näitaja=UNEMP_RATE, Sugu=T, Vanuserühm=Y15-74)
+sourceUrl: https://andmed.stat.ee/api/v1/en/stat/sotsiaalelu/tooturg/tooturu-uldandmed/luhiajastatistika/TT3300.px
+producer: Statistikaamet (Estonian Labour Force Survey)
+compiler: GovEesti — direct pass-through, no transformation
+licence: CC BY-SA 4.0 (Statistikaamet)
+validRange: { min: 2, max: 22 }   // observed 2000Q1–2026Q2: 3.9%–19.5% (2010Q1, financial crisis)
+revisionStatus: provisional latest quarter, revised
+```
+
+```
+id: econ-exports-gdp
+title: Exports of goods and services, % of GDP
+unit: percent · cadence: annual · coverage: Estonia
+source: World Bank NE.EXP.GNFS.ZS
+sourceUrl: https://api.worldbank.org/v2/country/EE/indicator/NE.EXP.GNFS.ZS?format=json
+producer: World Bank
+compiler: GovEesti — direct pass-through, no transformation
+licence: CC BY 4.0 (World Bank)
+validRange: { min: 30, max: 100 }   // observed 2003–2025: 57.1%–87.4%
+revisionStatus: final
+```
+
+```
+id: econ-rd-spend-gdp
+title: R&D expenditure, % of GDP
+unit: percent · cadence: annual · coverage: Estonia
+source: World Bank GB.XPD.RSDV.GD.ZS
+sourceUrl: https://api.worldbank.org/v2/country/EE/indicator/GB.XPD.RSDV.GD.ZS?format=json
+producer: World Bank (compiled from UNESCO/Eurostat)
+compiler: GovEesti — direct pass-through, no transformation
+licence: CC BY 4.0 (World Bank)
+validRange: { min: 0, max: 4 }   // observed 1998–2023: 0.565%–2.296%
+revisionStatus: final
+```
+
+```
+id: econ-broadband-penetration
+title: Households with broadband access
+unit: percent · cadence: annual · coverage: Estonia
+source: Eurostat isoc_r_broad_h (unit=PC_HH)
+sourceUrl: https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/isoc_r_broad_h?format=JSON&geo=EE&lang=EN
+producer: Eurostat
+compiler: GovEesti — direct pass-through, no transformation
+licence: CC BY 4.0 (Eurostat)
+validRange: { min: 20, max: 100 }   // observed 2006–2021: 36.4%–90.87%
+revisionStatus: final
+⚠️ CAVEAT: the fetched series stopped at 2021 — this dataset may not be updated any
+  further; check for a successor Eurostat code (e.g. a "digital decade" indicator)
+  at Этап 5 rather than assuming isoc_r_broad_h stays current.
+```
+
+## Kaitseministeerium (def)
+
+```
+id: def-spend-gdp
+title: Defence spending, % of GDP
+unit: percent · cadence: annual · coverage: Estonia
+source: World Bank MS.MIL.XPND.GD.ZS
+sourceUrl: https://api.worldbank.org/v2/country/EE/indicator/MS.MIL.XPND.GD.ZS?format=json
+producer: World Bank / SIPRI
+compiler: GovEesti — direct pass-through, no transformation
+licence: CC BY 4.0 (World Bank)
+validRange: { min: 0, max: 6 }   // observed 1993–2024: 0.76%–3.37% (latest, 2024)
+revisionStatus: final
+```
+
+```
+id: def-personnel-per-1000
+title: Military personnel, per 1,000 population
+unit: count · cadence: annual · coverage: Estonia
+source: World Bank MS.MIL.TOTL.P1 (absolute headcount) ÷ SP.POP.TOTL (population)
+sourceUrl MS.MIL.TOTL.P1: https://api.worldbank.org/v2/country/EE/indicator/MS.MIL.TOTL.P1?format=json
+sourceUrl SP.POP.TOTL: https://api.worldbank.org/v2/country/EE/indicator/SP.POP.TOTL?format=json
+producer: World Bank
+compiler: GovEesti — DERIVED per-1,000 ratio; MS.MIL.TOTL.P1 is NOT itself a per-capita
+  series (see the correction note above the ministry rows), so this cannot be a
+  direct pass-through
+licence: CC BY 4.0 (World Bank)
+validRange: { min: 1, max: 15 }   // per 1,000 population; observed 2020 headcount
+  7,000 over ~1.33M population ⇒ ≈5.3 per 1,000
+revisionStatus: final, but ⚠️ FRESHNESS RISK — the headcount series was last updated
+  for year 2020 in this session's fetch (stale by ~6 years as of 2026). If currency
+  matters for this row, look for a fresher source (e.g. NATO's annual defence-data
+  release) at Этап 5 rather than trusting WB's staleness away.
+```
+
+## Open items before Этап 4
+
+- **PISA** (`edu-pisa`) needs one more live probe — its "real source" status still
+  rests on the first, search-only session, unlike every other row above.
+- **Licence confidence** is uneven: Eurostat and World Bank are webpage-confirmed;
+  Statistikaamet is search-confirmed (CC BY-SA 4.0, cited by multiple independent
+  pages, but not read directly off a primary licence page this session); TAI and
+  the Justice portal have no named licence at all, only a plain attribution
+  request or nothing found. None of this blocks Этап 4/5 — it's the explicit scope
+  of Этап 10's per-source audit — but don't present the licence lines above as
+  final in any user-facing text before that audit runs.
+- Two **derived** indicators (`edu-pupil-teacher-ratio`, `def-personnel-per-1000`)
+  and one **paired** entry (`fin-debt-gdp`/`fin-deficit-gdp`) need the
+  `derivedFrom`/two-line handling this codebase already has a pattern for
+  (`wbCompare()`, `SeriesLine[]`) — not a new mechanism.
