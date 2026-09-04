@@ -460,6 +460,52 @@ async function eurostat(dataset, params = {}) {
   throw lastErr || new Error(`Eurostat ${dataset}: failed`);
 }
 
+// --- PxWeb (GovEesti) — shared by Statistikaamet (andmed.stat.ee) and
+// TAI (statistika.tai.ee); same engine, same query/response shape, only the
+// base URL differs. POST is required for data (GET only returns metadata).
+// `query` is the PxWeb query array — every classification dimension must be
+// pinned explicitly (PxWeb does not default an omitted dimension to "all").
+async function pxweb(url, query) {
+  let lastErr;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        ...fetchOpts({ accept: "application/json", "content-type": "application/json" }),
+        body: JSON.stringify({ query, response: { format: "json" } }),
+      });
+      if (!res.ok) {
+        lastErr = new Error(`PxWeb ${url} → HTTP ${res.status}`);
+        if (res.status === 400 || res.status === 404) break;
+        await sleep(600 * (attempt + 1));
+        continue;
+      }
+      const j = await res.json();
+      const rows = j?.data;
+      if (!Array.isArray(rows) || !rows.length) {
+        lastErr = new Error(`PxWeb ${url}: no data rows`);
+        await sleep(600 * (attempt + 1));
+        continue;
+      }
+      const timeIdx = (j.columns || []).findIndex((c) => c.type === "t");
+      if (timeIdx < 0) throw new Error(`PxWeb ${url}: no time column in response`);
+      if ((j.columns || []).filter((c) => c.type === "c").length !== 1)
+        throw new Error(`PxWeb ${url}: expected exactly one content column — pin more dimensions in query`);
+      const points = rows
+        .map((r) => ({ date: `${r.key[timeIdx]}-01-01`, value: Number(r.values[0]) }))
+        .filter((p) => /^\d{4}-01-01$/.test(p.date) && Number.isFinite(p.value))
+        .sort((a, b) => (a.date < b.date ? -1 : 1));
+      if (!points.length) throw new Error(`PxWeb ${url}: no usable points`);
+      setSrc(url);
+      return points;
+    } catch (e) {
+      lastErr = e;
+      await sleep(600 * (attempt + 1));
+    }
+  }
+  throw lastErr || new Error(`PxWeb ${url}: failed`);
+}
+
 // --- gov.uk Content & Search APIs + spreadsheet (ODS/XLSX) parsing ---
 // Many official series are published only as dated Excel/ODS files whose asset
 // URLs change each release. The gov.uk Content API exposes a page's *current*
@@ -2440,6 +2486,22 @@ const SOURCES = [
     min: 30,
     max: 70,
     get: () => eurostat("hlth_hlye", { geo: "EE", sex: "T", hlth_hle: "HLY_Y0", unit: "YR" }),
+  },
+
+  // Hospital beds (national total, annual average) — TAI PxWeb table HH08.
+  // Näitaja=0 "Hospital beds (annual average)", Ravivoodi liik=0 "Total
+  // hospital beds", Haigla nimi=0 = national total across all hospitals.
+  {
+    id: "soc-hospital-beds",
+    min: 4500,
+    max: 7500,
+    get: () =>
+      pxweb("https://statistika.tai.ee/api/v1/en/Andmebaas/04THressursid/11HAHaiglad/HH08.px", [
+        { code: "Näitaja", selection: { filter: "item", values: ["0"] } },
+        { code: "Ravivoodi liik", selection: { filter: "item", values: ["0"] } },
+        { code: "Haigla nimi", selection: { filter: "item", values: ["0"] } },
+        { code: "Aasta", selection: { filter: "all", values: ["*"] } },
+      ]),
   },
 
   // --- confirmed working (real ONS data) ---
