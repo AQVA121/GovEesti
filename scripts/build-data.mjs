@@ -2670,6 +2670,37 @@ const SOURCES = [
     },
   },
 
+  // General government debt ⇄ deficit/surplus, % of GDP — Statistikaamet
+  // RR061, same table as both indicators (Näitaja=2 debt%, Näitaja=4
+  // deficit/surplus%). Two independent ids (not lines of one series, unlike
+  // soc-life-expectancy) since departments.ts treats them as separate charts.
+  {
+    id: "fin-debt-gdp",
+    min: 0,
+    max: 40,
+    get: () =>
+      pxweb(
+        "https://andmed.stat.ee/api/v1/en/stat/majandus/rahandus/valitsemissektori-rahandus/valitsemissektori-tulud-kulud/RR061.px",
+        [
+          { code: "Näitaja", selection: { filter: "item", values: ["2"] } },
+          { code: "Aasta", selection: { filter: "all", values: ["*"] } },
+        ],
+      ),
+  },
+  {
+    id: "fin-deficit-gdp",
+    min: -10,
+    max: 5,
+    get: () =>
+      pxweb(
+        "https://andmed.stat.ee/api/v1/en/stat/majandus/rahandus/valitsemissektori-rahandus/valitsemissektori-tulud-kulud/RR061.px",
+        [
+          { code: "Näitaja", selection: { filter: "item", values: ["4"] } },
+          { code: "Aasta", selection: { filter: "all", values: ["*"] } },
+        ],
+      ),
+  },
+
   // --- confirmed working (real ONS data) ---
   { id: "hmt-cost-of-living", line: "cpi", min: -5, max: 30, get: () => ons(INFLATION, "D7G7", "mm23", "years") },
   { id: "hmt-psnd", min: 10, max: 130, get: () => ons(PUBFIN, "HF6X", "pusf", "years") },
