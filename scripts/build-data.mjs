@@ -2701,6 +2701,14 @@ const SOURCES = [
       ),
   },
 
+  // Tax burden, % of GDP — World Bank, same wb() helper, EE.
+  {
+    id: "fin-tax-burden",
+    min: 10,
+    max: 30,
+    get: () => wb("GC.TAX.TOTL.GD.ZS", "EE"),
+  },
+
   // --- confirmed working (real ONS data) ---
   { id: "hmt-cost-of-living", line: "cpi", min: -5, max: 30, get: () => ons(INFLATION, "D7G7", "mm23", "years") },
   { id: "hmt-psnd", min: 10, max: 130, get: () => ons(PUBFIN, "HF6X", "pusf", "years") },
