@@ -2744,6 +2744,26 @@ const SOURCES = [
     get: () => eurostat("env_air_gge", { geo: "EE", airpol: "GHG", unit: "THS_T", src_crf: "TOTXMEMO" }),
   },
 
+  // Road deaths (persons killed in traffic accidents) — Statistikaamet
+  // TS093, Näitaja=5 "Persons killed", Kuu=00 = annual total.
+  // Widened from the Этап 3 spec's [30, 150]: that range was calibrated
+  // against only the 2021-2024 window ("modern band 48-69"), but the full
+  // live pull shows a real, gradual multi-decade decline (491 in 1991 to
+  // 48-69 in the 2010s-2020s) with ~half the years above 150, not a small
+  // early-1990s outlier — the narrow guard rejected the WHOLE series
+  // (18/35 points out of range > 50% cutoff), not just a few points.
+  {
+    id: "clim-road-deaths",
+    min: 40,
+    max: 500,
+    get: () =>
+      pxweb("https://andmed.stat.ee/api/v1/en/stat/majandus/transport/liiklusennetused/TS093.PX", [
+        { code: "Näitaja", selection: { filter: "item", values: ["5"] } },
+        { code: "Kuu", selection: { filter: "item", values: ["00"] } },
+        { code: "Aasta", selection: { filter: "all", values: ["*"] } },
+      ]),
+  },
+
   // --- confirmed working (real ONS data) ---
   { id: "hmt-cost-of-living", line: "cpi", min: -5, max: 30, get: () => ons(INFLATION, "D7G7", "mm23", "years") },
   { id: "hmt-psnd", min: 10, max: 130, get: () => ons(PUBFIN, "HF6X", "pusf", "years") },
