@@ -156,7 +156,7 @@ const intRecordedCrimes: TrendSeries = {
   format: fmtCount,
   shortFormat: fmtCount,
   goodDirection: "down",
-  source: "Justiits- ja Digiministeerium (statistics portal)",
+  source: "Ministry of Justice and Digital Affairs (statistics portal)",
   sourceUrl: "https://statistika.justdigi.ee/en/crime-statistics",
   cadence: "annual",
   points: realPoints("int-recorded-crimes"),
@@ -427,7 +427,7 @@ const econBroadbandPenetration: TrendSeries = {
 export const departments: Department[] = [
   {
     code: "soc",
-    name: "Sotsiaalministeerium",
+    name: "Social Affairs",
     fullName: "Social Affairs",
     pageTitle: "Ministry of Social Affairs",
     spendBn: 1,
@@ -441,7 +441,7 @@ export const departments: Department[] = [
   },
   {
     code: "edu",
-    name: "Haridus- ja Teadusministeerium",
+    name: "Education",
     fullName: "Education and Research",
     pageTitle: "Ministry of Education and Research",
     spendBn: 1,
@@ -455,7 +455,7 @@ export const departments: Department[] = [
   },
   {
     code: "int",
-    name: "Siseministeerium",
+    name: "Interior",
     fullName: "Internal Affairs",
     pageTitle: "Ministry of the Interior",
     spendBn: 1,
@@ -469,7 +469,7 @@ export const departments: Department[] = [
   },
   {
     code: "just",
-    name: "Justiits- ja Digiministeerium",
+    name: "Justice",
     fullName: "Justice and Digital Affairs",
     pageTitle: "Ministry of Justice and Digital Affairs",
     spendBn: 1,
@@ -483,7 +483,7 @@ export const departments: Department[] = [
   },
   {
     code: "def",
-    name: "Kaitseministeerium",
+    name: "Defence",
     fullName: "Defence",
     pageTitle: "Ministry of Defence",
     spendBn: 1,
@@ -497,7 +497,7 @@ export const departments: Department[] = [
   },
   {
     code: "fin",
-    name: "Rahandusministeerium",
+    name: "Finance",
     fullName: "Finance",
     pageTitle: "Ministry of Finance",
     spendBn: 1,
@@ -511,7 +511,7 @@ export const departments: Department[] = [
   },
   {
     code: "clim",
-    name: "Kliimaministeerium",
+    name: "Climate",
     fullName: "Climate",
     pageTitle: "Ministry of Climate",
     spendBn: 1,
@@ -525,7 +525,7 @@ export const departments: Department[] = [
   },
   {
     code: "econ",
-    name: "Majandus- ja Kommunikatsiooniministeerium",
+    name: "Economic Affairs",
     fullName: "Economic Affairs and Communications",
     pageTitle: "Ministry of Economic Affairs and Communications",
     spendBn: 1,

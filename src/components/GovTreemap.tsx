@@ -73,7 +73,7 @@ export function GovTreemap({
       name: "gov",
       children: blocks.map((b) => ({
         name: b.dept.code,
-        label: `${b.dept.name} · £${b.dept.spendBn}bn`,
+        label: `${b.dept.name} · €${b.dept.spendBn}bn`,
         children: b.cells.map((c) => ({
           name: c.series.id,
           cell: c,
