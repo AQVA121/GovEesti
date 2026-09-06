@@ -80,17 +80,33 @@ metadata) — not Estonian or Russian by default. See BRIEF.md §2.
   await the still-unwired EMTA file source (§5/§9).
 - `scripts/check-open-data.mjs` — rewritten at Этап 7 (2026-09-06) into a
   small, self-contained guard: reads `src/generated/seriesData.ts` directly
-  (no dependency on the not-yet-built minimal open-data layer, §8) and
-  fails the build if any baked series has no `validRange` guard, or any
+  (no dependency on `dist/data/*`, the minimal open-data layer built at
+  Этап 8 below) and fails the build if any baked series has no `validRange`
+  guard, or any
   point falls outside it. Reconnected to `npm run build` and both CI
   workflows. Guards are now per-line where a series has multiple lines
   (`soc-life-expectancy`'s two lines have genuinely different plausible
   ranges) — `build-data.mjs`'s main loop bakes a `guard` onto each line
   object, not just once at the record level.
+- `scripts/build-open-data.mjs` — the minimal open-data layer (Этап 8,
+  2026-09-06): `dist/data/series/{id}.json` (producer/compiler/licence/
+  validRange/freshness) + `dist/data/series/{id}/data.csv` per series
+  `departments.ts` references. Deliberately not the DCAT/CSVW/OpenAPI
+  apparatus removed in Этап 4 — reads `seriesData.ts` and `departments.ts`
+  directly, no schema of its own. A series with no baked data (currently
+  `just-no-source-yet`) gets an honest metadata record with `validRange`/
+  `latest` as `null` and no CSV file — never a fabricated one. Wired into
+  `npm run build`, after the prerender steps and before the Этап 7 guard
+  check.
 - `docs/conformance/probe-15-lines.mjs` — kept per the original plan, base
-  URL adapted to GovEesti's expected `/data/` path — but that path doesn't
-  exist yet either (same Этап 8 dependency as above), so this probe has
-  nothing to fetch right now.
+  URL adapted to GovEesti's `/data/` path. Confirmed working end-to-end
+  2026-09-06 against a local build (`GOVVIZ_DATA_BASE=http://localhost:PORT/data`,
+  same env var `build-open-data.mjs` also reads) — real values, real
+  validRange check. Known gap: it assumes every series has real data (no
+  `rec.latest === null` handling), so it throws an unhandled URL error if
+  pointed at an unsourced placeholder like `just-no-source-yet` — fine for
+  its actual use (probing a real series id), not something this session
+  changed since the probe's own logic wasn't in scope.
 - Removed in Этап 4 (2026-09-04, see git history for the originals):
   `tools/mcp/`, `docs/conformance/*` (except the probe script above),
   `docs/policy-*`, `docs/blog-*`, `docs/outreach/`, `docs/backlog-research/`,
